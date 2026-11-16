@@ -20,7 +20,8 @@
     "test": "turbo run test",
     "check:deps": "node tooling/check-dependency-rules.mjs",
     "check": "npm run check:deps && npm run lint && npm run typecheck && npm run test",
-    "license:dev": "tsx tooling/dev-license.ts"
+    "license:dev": "tsx tooling/dev-license.ts",
+    "test:db:prepare": "node tooling/prepare-test-databases.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",

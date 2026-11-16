@@ -75,3 +75,91 @@
     gap: var(--cx-space-4);
   }
 }
+
+@layer clumera.components {
+  .cx-field {
+    display: grid;
+    gap: var(--cx-space-1);
+  }
+  .cx-label {
+    font-weight: 600;
+    color: var(--cx-title);
+    font-size: var(--cx-fs-small);
+  }
+  .cx-input {
+    min-height: var(--cx-touch);
+    width: 100%;
+    padding: 0 var(--cx-space-3);
+    border: 1px solid var(--cx-line-strong);
+    border-radius: var(--cx-r-btn);
+    background: var(--cx-surface);
+    color: var(--cx-text);
+    font-size: var(--cx-fs-body);
+  }
+  .cx-input[aria-invalid='true'] {
+    border-color: var(--cx-bad);
+  }
+  .cx-hint {
+    font-size: var(--cx-fs-small);
+    color: var(--cx-text-2);
+  }
+  .cx-error {
+    font-size: var(--cx-fs-small);
+    color: var(--cx-bad);
+  }
+  .cx-auth {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: var(--cx-space-5) var(--cx-space-4);
+    background: linear-gradient(160deg, var(--cx-primary) 0%, var(--cx-primary-deep) 100%);
+  }
+  .cx-auth__panel {
+    width: min(100%, 420px);
+  }
+  .cx-auth__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--cx-space-3);
+    margin-bottom: var(--cx-space-4);
+  }
+  .cx-auth__brand img {
+    width: 48px;
+    height: 48px;
+  }
+  .cx-link {
+    color: var(--cx-button);
+    font-weight: 600;
+    min-height: var(--cx-touch);
+    display: inline-flex;
+    align-items: center;
+  }
+  .cx-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cx-space-3);
+    min-height: var(--cx-topbar-h);
+    padding: 0 var(--cx-space-4);
+    background: var(--cx-primary);
+    color: var(--cx-on-primary);
+  }
+  .cx-topbar a {
+    color: var(--cx-on-primary);
+  }
+  .cx-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--cx-space-2);
+  }
+  .cx-list__item {
+    border-bottom: 1px solid var(--cx-line-soft);
+    padding: var(--cx-space-3) 0;
+  }
+  .cx-muted {
+    color: var(--cx-text-2);
+    font-size: var(--cx-fs-small);
+  }
+}

@@ -2,7 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/client';
 
 export * from './generated/client';
-export { appendOutbox } from './outbox';
+export { appendOutbox, processOutbox, type OutboxConsumer, type OutboxRunResult } from './outbox';
 
 /** Cliente de la base de ESTA instalación. Nunca apuntar a la base de otro club. */
 export function createPrismaClient(connectionString = process.env.DATABASE_URL): PrismaClient {

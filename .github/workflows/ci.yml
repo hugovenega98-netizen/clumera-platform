@@ -19,8 +19,8 @@ jobs:
     timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: '1'
-      # Sin client.config.json real en CI: se usa el ejemplo del repo.
-      CLUMERA_CLIENT_CONFIG: client.config.example.json
+      # Club con el que se compila en CI.
+      CLUMERA_CLIENT_ID: club-ejemplo
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

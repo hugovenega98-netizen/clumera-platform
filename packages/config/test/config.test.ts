@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { buildWebManifest, clientCssText, clientCssVariables, contrastRatio, parseClientConfig, publicOrigin } from '../src';
 
-const example = JSON.parse(readFileSync(fileURLToPath(new URL('../../../client.config.example.json', import.meta.url)), 'utf8'));
+const example = JSON.parse(readFileSync(fileURLToPath(new URL('../../../clients/club-ejemplo/client.config.json', import.meta.url)), 'utf8'));
 const clone = () => structuredClone(example);
 const problemsOf = (input: unknown) => {
   const r = parseClientConfig(input);
@@ -73,5 +73,21 @@ describe('branding', () => {
   it('calcula contraste WCAG', () => {
     expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 0);
     expect(contrastRatio('#777777', '#777777')).toBe(1);
+  });
+});
+
+describe('clientes del repo', () => {
+  it('cada carpeta de clients/ tiene una config válida y coherente con su nombre', async () => {
+    const { readdirSync } = await import('node:fs');
+    const { loadClientConfig, assertConfigMatchesFolder, missingAssets } = await import('../src/node');
+    const dir = fileURLToPath(new URL('../../../clients/', import.meta.url));
+    const ids = readdirSync(dir);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) {
+      const file = `${dir}${id}/client.config.json`;
+      const cfg = loadClientConfig(file);
+      assertConfigMatchesFolder(cfg, file);
+      expect(missingAssets(cfg, `${dir}${id}/public`), id).toEqual([]);
+    }
   });
 });

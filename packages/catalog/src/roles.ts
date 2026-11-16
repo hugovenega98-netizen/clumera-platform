@@ -39,3 +39,18 @@ export const baseRoles = {
 } as const satisfies RoleCatalog;
 
 export type BaseRole = keyof typeof baseRoles;
+
+export const roleNames: Record<BaseRole, string> = {
+  superadmin: 'Superadmin',
+  member: 'Socio',
+  coach: 'Coach',
+  medical: 'Médico/Kine',
+  accounting: 'Contabilidad',
+  desk: 'Mesa de control',
+  reception: 'Recepción',
+  facility_manager: 'Encargado de instalaciones',
+  coordinator: 'Coordinador',
+  teacher: 'Profesor',
+  organizer: 'Organizador de torneos y eventos',
+  cashier: 'Caja',
+};

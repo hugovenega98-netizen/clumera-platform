@@ -8,11 +8,11 @@ coverage/
 .env.*
 !.env.example
 apps/web/public/sw.js
+apps/web/public/branding/
+apps/web/public/icons/
 packages/db/src/generated/
 apps/web/public/sw.js.map
 apps/web/public/swe-worker-*.js
-client.config.json
-!fixtures/**/client.config.json
 playwright-report/
 test-results/
 .DS_Store

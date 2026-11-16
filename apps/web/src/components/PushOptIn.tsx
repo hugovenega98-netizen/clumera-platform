@@ -2,6 +2,7 @@
 
 import { Button, Card, Notice } from '@clumera/ui';
 import { useEffect, useState } from 'react';
+import { postJson } from './forms';
 
 type State =
   | { kind: 'checking' }
@@ -26,7 +27,8 @@ function isIosOutsideHomeScreen(): boolean {
 }
 
 /**
- * Activa avisos en este dispositivo y manda un push de prueba (Fase 0: push de punta a punta).
+ * Guarda este dispositivo en la cuenta y manda un aviso de prueba por la bandeja y por push
+ * (criterio de la Fase 0).
  * En iPhone los avisos solo funcionan con la app agregada a la pantalla de inicio.
  */
 export function PushOptIn({ vapidPublicKey }: { vapidPublicKey: string }) {
@@ -54,15 +56,10 @@ export function PushOptIn({ vapidPublicKey }: { vapidPublicKey: string }) {
       const subscription =
         (await registration.pushManager.getSubscription()) ??
         (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) }));
-      const res = await fetch('/api/push/test', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(subscription.toJSON()),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
-        return setState({ kind: 'error', message: body?.error?.message ?? `No se pudo enviar el aviso (HTTP ${res.status}).` });
-      }
+      const saved = await postJson('/api/push/subscriptions', subscription.toJSON());
+      if (!saved.ok) return setState({ kind: 'error', message: saved.error.message });
+      const sent = await postJson('/api/notifications/test', {});
+      if (!sent.ok) return setState({ kind: 'error', message: sent.error.message });
       setState({ kind: 'done' });
     } catch (e) {
       setState({ kind: 'error', message: (e as Error).message || 'No se pudieron activar los avisos.' });

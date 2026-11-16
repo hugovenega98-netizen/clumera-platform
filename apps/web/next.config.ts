@@ -1,13 +1,17 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadClientConfig, missingAssets } from '@clumera/config/node';
+import { assertConfigMatchesFolder, clientDir, loadClientConfig, missingAssets, resolveClientConfigPath, syncClientAssets } from '@clumera/config/node';
 import { withSerwist } from '@serwist/turbopack';
 import type { NextConfig } from 'next';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-// La identidad del club se valida al compilar: una config inválida o con recursos faltantes corta el build.
-const clientConfig = loadClientConfig();
+// La identidad del club (clients/<CLUMERA_CLIENT_ID>) se valida al compilar y sus recursos se copian
+// a public/: una config inválida o con recursos faltantes corta el build.
+const configFile = resolveClientConfigPath();
+const clientConfig = loadClientConfig(configFile);
+assertConfigMatchesFolder(clientConfig, configFile);
+syncClientAssets(clientDir(), path.join(here, 'public'));
 const missing = missingAssets(clientConfig, path.join(here, 'public'));
 if (missing.length) throw new Error(`client.config.json apunta a recursos inexistentes:\n  - ${missing.join('\n  - ')}`);
 

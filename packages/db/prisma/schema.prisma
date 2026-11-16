@@ -340,3 +340,28 @@ model ProcessedEvent {
 
   @@id([consumer, eventId])
 }
+
+// ───────────── Seguridad y correo ─────────────
+
+/// Ventana fija de límite de solicitudes, compartida entre instancias serverless.
+model RateLimitBucket {
+  /// `<regla>:<hash de ip o login>:<inicio de ventana>`; nunca la IP en claro.
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+/// Bandeja de correo de desarrollo y Lab (CLUMERA_MAIL_DRIVER=dev). En producción queda vacía.
+model DevMailMessage {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  text      String
+  html      String?
+  tag       String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

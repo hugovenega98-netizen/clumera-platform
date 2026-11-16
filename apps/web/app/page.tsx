@@ -1,23 +1,24 @@
 import { catalog } from '@clumera/catalog';
 import { Card } from '@clumera/ui';
 import Link from 'next/link';
-import { PushOptIn } from '@/components/PushOptIn';
+import { AppShell } from '@/components/AppShell';
 import { clientConfig } from '@/lib/client-config';
 import { getLicenseState } from '@/lib/license';
 import { navigationFor } from '@/lib/navigation';
+import { requireSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
+  const session = await requireSession('/');
   const { enabled } = await getLicenseState();
   const items = navigationFor('member', catalog, enabled, clientConfig.modules.visible);
   return (
-    <main className="cx-page cx-stack">
+    <AppShell firstName={session.firstName}>
       <header>
-        <h1>{clientConfig.identity.displayName}</h1>
+        <h1>Hola, {session.firstName}</h1>
         <p>{clientConfig.identity.tagline}</p>
       </header>
-
       <Card title="Tu club">
         <nav aria-label="Secciones">
           <ul className="cx-stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -31,12 +32,9 @@ export default async function HomePage() {
           </ul>
         </nav>
       </Card>
-
-      <PushOptIn vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''} />
-
       <footer>
         <small>{clientConfig.identity.footer}</small>
       </footer>
-    </main>
+    </AppShell>
   );
 }

@@ -28,3 +28,13 @@ describe('ui', () => {
     expect(readFileSync(`${stylesDir}tokens.css`, 'utf8')).toMatch(/--cx-touch: 44px/);
   });
 });
+
+describe('Field', () => {
+  it('asocia etiqueta, ayuda y error al input', async () => {
+    const { Field } = await import('../src');
+    const html = renderToStaticMarkup(<Field id="pw" label="Contraseña" hint="10+ caracteres" error="Muy corta" />);
+    expect(html).toContain('<label class="cx-label" for="pw">');
+    expect(html).toContain('aria-describedby="pw-hint pw-error"');
+    expect(html).toContain('aria-invalid="true"');
+  });
+});

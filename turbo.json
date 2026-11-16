@@ -4,7 +4,8 @@
   "tasks": {
     "build": {
       "dependsOn": [
-        "^build"
+        "^build",
+        "^generate"
       ],
       "outputs": [
         ".next/**",
@@ -15,19 +16,37 @@
     },
     "typecheck": {
       "dependsOn": [
-        "^typecheck"
+        "^typecheck",
+        "^generate",
+        "generate"
       ]
     },
     "test": {
-      "outputs": []
+      "outputs": [],
+      "dependsOn": [
+        "^generate",
+        "generate"
+      ]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": [
+        "^generate"
+      ]
+    },
+    "generate": {
+      "outputs": [
+        "src/generated/**"
+      ],
+      "inputs": [
+        "prisma/schema.prisma",
+        "prisma.config.ts"
+      ]
     }
   },
   "globalEnv": [
-    "CLUMERA_CLIENT_CONFIG",
+    "CLUMERA_CLIENT_ID",
     "NEXT_PUBLIC_*"
   ],
   "globalPassThroughEnv": [
@@ -38,6 +57,7 @@
     "VAPID_SUBJECT",
     "DATABASE_URL",
     "VERCEL_*",
-    "NEXT_TELEMETRY_DISABLED"
+    "NEXT_TELEMETRY_DISABLED",
+    "TEST_PG_URL"
   ]
 }
