@@ -1,4 +1,5 @@
-import { Card } from '@clumera/ui';
+import { Card, InstallApp } from '@clumera/ui';
+import { clientConfig } from '@/lib/client-config';
 import type { Metadata } from 'next';
 import { AppShell } from '@/components/AppShell';
 import { LogoutButton } from '@/components/LogoutButton';
@@ -16,6 +17,10 @@ export default async function AccountPage() {
       <Card title={`${session.firstName} ${session.lastName}`}>
         <p className="cx-muted">Usuario: {session.login}</p>
         <LogoutButton />
+      </Card>
+      <Card title="App en el teléfono">
+        <p className="cx-muted">Instalala para abrirla desde un ícono, usarla sin conexión y recibir avisos (en iPhone, los avisos solo llegan con la app instalada).</p>
+        <InstallApp appName={clientConfig.pwa.shortName} />
       </Card>
       <PushOptIn vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''} />
     </AppShell>

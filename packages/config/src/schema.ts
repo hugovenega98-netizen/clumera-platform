@@ -62,6 +62,11 @@ export const clientConfigSchema = z
       name: text('pwa.name'),
       shortName: text('pwa.shortName').max(12, 'pwa.shortName: máximo 12 caracteres'),
       description: text('pwa.description'),
+      /** Pantalla con la que abre la app instalada. Por defecto, el inicio. */
+      startPath: z
+        .string()
+        .regex(/^\/(?!\/)[\w\-/]*$/, 'pwa.startPath: una ruta del mismo sitio, por ejemplo /')
+        .default('/'),
     }),
     login: z.object({
       title: text('login.title'),

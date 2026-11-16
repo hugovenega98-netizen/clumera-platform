@@ -31,6 +31,19 @@ interface PushData {
   tag?: string;
 }
 
+/** Ícono de los avisos: el del club, leído del manifiesto (el worker no conoce la configuración). */
+let iconPromise: Promise<string | undefined> | null = null;
+function clubIcon(): Promise<string | undefined> {
+  iconPromise ??= fetch('/manifest.webmanifest')
+    .then((r) => r.json() as Promise<{ icons?: Array<{ src: string; purpose?: string }> }>)
+    .then((m) => m.icons?.find((i) => i.purpose !== 'maskable')?.src)
+    .catch(() => {
+      iconPromise = null;
+      return undefined;
+    });
+  return iconPromise;
+}
+
 self.addEventListener('push', (event) => {
   let data: PushData = { title: 'Aviso del club', body: 'Tenés un aviso nuevo.' };
   try {
@@ -39,13 +52,15 @@ self.addEventListener('push', (event) => {
     // Contenido no JSON: se muestra el aviso genérico.
   }
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      tag: data.tag,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      data: { url: data.url && data.url.startsWith('/') ? data.url : '/' },
-    }),
+    clubIcon().then((icon) =>
+      self.registration.showNotification(data.title, {
+        body: data.body,
+        tag: data.tag,
+        icon,
+        badge: icon,
+        data: { url: data.url && data.url.startsWith('/') && !data.url.startsWith('//') ? data.url : '/' },
+      }),
+    ),
   );
 });
 

@@ -87,3 +87,7 @@
     align-items: start;
   }
 }
+
+.lab-install {
+  margin-top: var(--cx-space-3);
+}

@@ -1,4 +1,5 @@
-import { Button, Card, Notice } from '@clumera/ui';
+import { Button, Card, InstallApp, Notice } from '@clumera/ui';
+import { clientConfig } from '@/lab';
 import { LabShell } from '@/LabShell';
 import { LAB_PROFILES } from '@/profiles';
 
@@ -11,6 +12,7 @@ export default async function LabHome({ searchParams }: { searchParams: Promise<
       <header>
         <h1>Clumera Lab</h1>
         <p>Un club integral con datos de prueba. Elegí un perfil para entrar a la app como esa persona.</p>
+        <InstallApp appName={clientConfig.pwa.shortName} serviceWorkerUrl="/serwist/sw.js" className="lab-install" />
       </header>
       {restaurado ? <Notice tone="ok">Lab volvió a los datos base.</Notice> : null}
       {error ? <Notice tone="bad">{error}</Notice> : null}
