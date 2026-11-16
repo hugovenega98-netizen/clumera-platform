@@ -27,7 +27,8 @@ El plan vigente es «Clumera 2.0 — Plan integral del nuevo repositorio»; las 
 - Datos clínicos con permiso propio; Coach, Contabilidad, Recepción y público nunca los reciben. Recepción ve validez y motivo, nunca deuda ni salud.
 - El QR no contiene datos legibles. El documento se guarda como digest + últimos 4.
 - La demo (selector de perfiles, restaurar) vive solo en `apps/lab`, nunca en el core.
-- Objetivos táctiles de 44 px, contraste AA, anchos de 320 a 1440 px. Verificar móvil y escritorio cuando cambia la interfaz.
+- Mobile first integrado a la PWA (instalable, push, sin conexión) y, además, versión de escritorio de cada pantalla. Una pantalla no está terminada con una sola de las dos; el diseño de referencia (lienzo de las 28 pantallas) tiene ambas versiones.
+- Objetivos táctiles de 44 px, contraste AA, anchos de 320 a 1440 px. Verificar móvil (instalada como PWA) y escritorio cuando cambia la interfaz.
 
 ## Verificación
 - Siempre: `npm run check` (con `TEST_PG_URL` y `npm run test:db:prepare`) y `npm run build`.
