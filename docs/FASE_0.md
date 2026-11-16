@@ -3,45 +3,48 @@
 Criterio de terminado (plan): **la PWA se instala en Android y iPhone, recibe un push real, y la API
 rechaza un módulo sin licencia.**
 
-## Hecho
+## Estado
 
-| Entregable | Dónde | Verificación |
+| Criterio | Estado | Evidencia |
 | --- | --- | --- |
-| Monorepo (npm workspaces + Turborepo), TypeScript estricto, ESLint | raíz | `npm run check` |
-| CI: reglas de dependencia, lint, tipos, pruebas, build | `.github/workflows/ci.yml` | se ejecuta en cada PR |
-| Reglas de dependencia por capa | `tooling/check-dependency-rules.mjs` | `npm run check:deps` |
-| Kernel: errores, eventos de dominio, manifiestos y registro de módulos | `packages/kernel` | pruebas unitarias |
-| Licencias firmadas Ed25519, verificadas en el servidor (falla cerrado) | `packages/kernel/src/license.ts` | alteradas, vencidas, de otro club y con otra clave se rechazan |
-| Permisos con ámbito `can(actor, action, resource)` | `packages/kernel/src/permissions.ts` | coach por equipo, `:self`, módulo sin licencia |
-| Contrato `client.config.json` v2 (dominio, módulos visibles, contraste AA, sin secretos) | `packages/config` | pruebas + validación al compilar |
-| Esquema Prisma de Fase 0 y migración inicial | `packages/db` | la migración se aplica sobre PostgreSQL (PGlite) en las pruebas |
-| Tokens del rediseño y componentes base | `packages/ui` | sin colores de club fuera de `--client-*`; táctil 44 px |
-| Catálogo: 4 servicios core + 8 módulos, roles base | `packages/catalog` | permisos de roles existen; Recepción y Coach sin salud ni deuda |
-| PWA: manifiesto por club, service worker (Serwist), página sin conexión | `apps/web/app/manifest.ts`, `app/sw.ts`, `app/~offline` | build de producción sirve `/manifest.webmanifest` y `/serwist/sw.js` |
-| Push de punta a punta (VAPID) | `packages/notifications`, `apps/web/app/api/push/test` | botón «Activar avisos y probar» en el inicio |
-| Bloqueo de módulos sin licencia en proxy y Route Handler | `apps/web/proxy.ts`, `src/lib/require-module.ts` | `/api/m/<modulo>/status` → 403 sin licencia, 200 con licencia |
+| La API rechaza un módulo sin licencia | ✅ | Unitarias (proxy y Route Handler) + e2e: 403 por Lab y directo contra el core |
+| La PWA es instalable (manifiesto, íconos, SW, sin conexión) | ✅ en Chromium | e2e escritorio y Pixel 7: manifiesto, SW registrado con alcance `/`, página sin conexión |
+| Instalar en Android y iPhone reales | ⏳ | Requiere abrir Lab en los teléfonos (ver abajo) |
+| Push real | ⏳ | Envío por bandeja + push implementado y probado con un emisor simulado; falta el dispositivo real y las claves VAPID en Lab |
 
-## Pendiente para cerrar la Fase 0
+## Qué hay
 
-1. **Autenticación**: cuentas con email/usuario, activación y recuperación por enlace de un solo uso,
-   sesiones en cookie httpOnly, bloqueo por intentos, límite de solicitudes. El esquema ya está
-   (`UserAccount`, `Session`, `ActivationToken`).
-2. **Suscripciones push persistentes** por cuenta (`PushSubscription`) y envío desde el outbox; hoy
-   `/api/push/test` manda un aviso sin guardar nada y solo existe con `CLUMERA_PUSH_TEST=1`.
-3. **Prueba en dispositivo real**: desplegar Lab en Vercel, instalar en Android y iPhone (iOS 16.4+,
-   agregada a inicio) y recibir el push de prueba.
-4. **Lab mínimo** (`apps/lab`) y **Management con alta de instalación** (`apps/management`), incluida
-   la firma de licencias.
-5. Playwright: recorridos por rol y la prueba de licencia apagada contra el build.
-6. Decidir de dónde sale `client.config.json` y los recursos de cada club en Vercel (ver abajo).
+| Entregable | Dónde |
+| --- | --- |
+| Monorepo, CI (reglas de dependencia, lint, tipos, pruebas sobre PostgreSQL, control de migraciones, build, Playwright) | raíz, `.github/workflows/ci.yml` |
+| Kernel: eventos, manifiestos, licencias Ed25519, `can()` con ámbito | `packages/kernel` |
+| Config por club en el repo: `clients/<id>/client.config.json` + `public/`; `CLUMERA_CLIENT_ID` elige | `clients/`, `packages/config` |
+| Esquema y migraciones de Fase 0; outbox idempotente | `packages/db` |
+| Autenticación: activación y recuperación por enlace de un solo uso, sesiones httpOnly (`__Host-`), bloqueo por intentos, límite de solicitudes en PostgreSQL, CSRF por origen | `packages/identity`, `apps/web` |
+| Correo: Resend o bandeja de desarrollo | `packages/mail` |
+| Avisos: bandeja única sin duplicados, push a todos los dispositivos de la cuenta, cron del outbox | `packages/notifications`, `apps/web/app/api/cron/outbox` |
+| PWA: manifiesto por club, Serwist, página sin conexión estática con la identidad del club | `apps/web` |
+| Lab mínimo: 12 perfiles, bandeja de correo, restaurar; reenvía al core de Lab (mismo origen) | `apps/lab` |
+| Management: acceso de administrador, alta de instalación con licencia firmada, config y variables, reemisión | `apps/management` |
+| Recorridos e2e (escritorio, móvil, 320 px) | `e2e/` |
 
-## Decisión abierta: config y recursos por club
+## Lab desplegado
 
-Un repo, muchas instalaciones. Hoy el build lee `CLUMERA_CLIENT_CONFIG` (ruta relativa a la raíz) y
-los recursos desde `apps/web/public`. Opciones:
+- Lab (entrada de la demo): https://clumera-platform-lab.vercel.app/lab
+- Core de Lab: https://clumera-platform-lab-core.vercel.app
+- Base: Neon `clumera-platform-lab`, base `clumera_lab` (proyecto nuevo; los de la versión anterior no se tocaron).
+- Las migraciones corren en el build del core de Lab. La primera vez hay que tocar **Restaurar datos base** en /lab para sembrar.
 
-- **A.** `clients/<clientId>/client.config.json` + `clients/<clientId>/public/` en el repo, y cada
-  proyecto de Vercel define `CLUMERA_CLIENT_ID`; un paso previo al build copia los recursos.
-- **B.** Management guarda config y recursos y el build los descarga (necesita token de Management en Vercel).
+### Prueba en dispositivo
 
-A es más simple y auditable; B evita commitear logos de clientes en el repo del core.
+1. Android (Chrome): abrir Lab, entrar con un perfil, menú ⋮ → *Instalar app*.
+2. iPhone (Safari, iOS 16.4+): Compartir → *Agregar a inicio*, y abrir la app desde el ícono (push solo funciona así).
+3. En la app instalada: *Mi cuenta* → *Activar avisos y probar*. Debe llegar el aviso y aparecer en *Avisos*.
+
+## Pendiente
+
+- Claves VAPID, `CRON_SECRET` y `CLUMERA_DOC_PEPPER` del core de Lab (secretos: los carga una persona).
+- Desplegar Management con su propia base y claves de licencia; reemitir desde ahí la licencia de Lab.
+- `main` como rama por defecto y protección de rama (hoy la rama por defecto es `fase-0/base-plataforma`).
+- CAPTCHA liviano en endpoints públicos (el plan lo pide; hoy hay límite de solicitudes).
+- Restaurar Lab por sesión de demo (hoy vacía y resiembra la base dedicada entera).

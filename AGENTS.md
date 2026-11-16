@@ -22,14 +22,15 @@ El plan vigente es «Clumera 2.0 — Plan integral del nuevo repositorio»; las 
 - Toda ruta de módulo nueva debe llamar a `requireModule()` además de pasar por el proxy, y tener una prueba que la llame con la licencia apagada y espere 403.
 
 ## Reglas de producto
-- No fijar nombres, colores o recursos de un club en componentes: todo sale de `client.config.json` vía variables `--client-*`.
+- No fijar nombres, colores o recursos de un club en componentes: todo sale de `clients/<id>/client.config.json` vía variables `--client-*`.
 - Datos clínicos con permiso propio; Coach, Contabilidad, Recepción y público nunca los reciben. Recepción ve validez y motivo, nunca deuda ni salud.
 - El QR no contiene datos legibles. El documento se guarda como digest + últimos 4.
 - La demo (selector de perfiles, restaurar) vive solo en `apps/lab`, nunca en el core.
 - Objetivos táctiles de 44 px, contraste AA, anchos de 320 a 1440 px. Verificar móvil y escritorio cuando cambia la interfaz.
 
 ## Verificación
-- Siempre: `npm run check` y `npm run build`.
+- Siempre: `npm run check` (con `TEST_PG_URL` y `npm run test:db:prepare`) y `npm run build`.
+- Cambios de pantallas, autenticación, Lab o Management: `npm run e2e`.
 - Cambios de PWA o push: además `npm run build && npm run start -w @clumera/web` y revisar `/manifest.webmanifest` y `/serwist/sw.js`.
 - Cambios de esquema: nueva migración en `packages/db/prisma/migrations` y `npm run test -w @clumera/db` (aplica las migraciones sobre PGlite).
 - Documentar si una prueba necesita un entorno que no está disponible.
