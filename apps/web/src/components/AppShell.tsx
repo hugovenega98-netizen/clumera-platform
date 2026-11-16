@@ -28,7 +28,7 @@ async function memberNav(): Promise<NavLink[]> {
 function dockItems(nav: NavLink[]): NavLink[] {
   const preferred = ['identity:card', 'bookings:book', 'finance:payments', 'sports:my-sports'];
   const main = preferred.map((k) => nav.find((n) => n.key === k)).filter((n): n is NavLink => Boolean(n)).slice(0, 3);
-  return [{ key: 'home', href: '/', label: 'Inicio', icon: 'home' }, ...main, { key: 'more', href: '/cuenta', label: 'Más', icon: 'more' }];
+  return [{ key: 'home', href: '/', label: 'Inicio', icon: 'home' }, ...main, { key: 'more', href: '/espacios', label: 'Más', icon: 'more' }];
 }
 
 const isCurrent = (href: string, current: string) => (href === '/' ? current === '/' : current === href || current.startsWith(`${href}/`));
@@ -67,6 +67,10 @@ export async function AppShell({ children, session, current, title }: { children
             <Icon name="bell" />
             Avisos
           </Link>
+          <Link href="/espacios" {...aria('/espacios')}>
+            <Icon name="family" />
+            Mis espacios
+          </Link>
           <Link href="/cuenta" {...aria('/cuenta')}>
             <Icon name="more" />
             Mi cuenta
@@ -97,7 +101,7 @@ export async function AppShell({ children, session, current, title }: { children
       </div>
       <nav className="cx-dock" aria-label="Navegación principal">
         {dockItems(nav).map((n) => (
-          <Link key={n.key} href={n.href} {...aria(n.href)}>
+          <Link key={n.key} href={n.href} {...(n.key === 'more' && current === '/cuenta' ? { 'aria-current': 'page' as const } : aria(n.href))}>
             <Icon name={n.icon} size={24} />
             {n.label}
           </Link>

@@ -5,3 +5,6 @@ export * from './rate-limit';
 export { hashPassword, verifyPassword, randomToken, sha256 } from './crypto';
 export { passwordProblems } from './password-policy';
 export * from './cookie';
+export * from './credentials';
+export * from './family';
+export * from './spaces';

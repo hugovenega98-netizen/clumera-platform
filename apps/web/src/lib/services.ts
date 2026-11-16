@@ -1,7 +1,7 @@
 import 'server-only';
 import { publicOrigin } from '@clumera/config';
 import { getPrisma } from '@clumera/db';
-import { createAuthService, DEFAULT_AUTH_SETTINGS, type AuthService } from '@clumera/identity';
+import { createAuthService, createCredentialService, DEFAULT_AUTH_SETTINGS, type AuthService, type CredentialService } from '@clumera/identity';
 import { mailerFromEnv, type Mailer } from '@clumera/mail';
 import { clientConfig } from './client-config';
 
@@ -26,4 +26,10 @@ export function getAuth(): AuthService {
     settings: { ...DEFAULT_AUTH_SETTINGS, publicOrigin: appOrigin(), clubName: clientConfig.identity.displayName },
   });
   return auth;
+}
+
+let credentials: CredentialService | null = null;
+export function getCredentials(): CredentialService {
+  credentials ??= createCredentialService(getPrisma());
+  return credentials;
 }

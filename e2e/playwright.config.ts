@@ -10,7 +10,7 @@ export default defineConfig({
   use: { trace: 'retain-on-failure', locale: 'es-AR', timezoneId: 'America/Argentina/Buenos_Aires' },
   projects: [
     { name: 'escritorio', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
-    { name: 'movil', use: { ...devices['Pixel 7'] }, testMatch: /lab|pwa|permissions|layout/ },
+    { name: 'movil', use: { ...devices['Pixel 7'] }, testMatch: /lab|pwa|permissions|layout|identidad/ },
     { name: 'angosto', use: { ...devices['Desktop Chrome'], viewport: { width: 320, height: 640 } }, testMatch: /lab/ },
   ],
 });
