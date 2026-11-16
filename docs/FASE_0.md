@@ -10,7 +10,7 @@ rechaza un módulo sin licencia.**
 | La API rechaza un módulo sin licencia | ✅ | Unitarias (proxy y Route Handler) + e2e: 403 por Lab y directo contra el core |
 | La PWA es instalable (manifiesto, íconos, SW, sin conexión) | ✅ en Chromium | e2e escritorio y Pixel 7: manifiesto, SW registrado con alcance `/`, página sin conexión |
 | Instalar en Android y iPhone reales | ⏳ | Requiere abrir Lab en los teléfonos (ver abajo) |
-| Push real | ⏳ | Envío por bandeja + push implementado y probado con un emisor simulado; falta el dispositivo real y las claves VAPID en Lab |
+| Push real | ⏳ | Envío por bandeja + push implementado; claves VAPID cargadas en Lab; falta probarlo en el dispositivo real |
 
 ## Qué hay
 
@@ -44,8 +44,7 @@ rechaza un módulo sin licencia.**
 
 ## Pendiente
 
-- Claves VAPID, `CRON_SECRET` y `CLUMERA_DOC_PEPPER` del core de Lab (secretos: los carga una persona).
-- Desplegar Management con su propia base y claves de licencia; reemitir desde ahí la licencia de Lab.
+- Management desplegado en Vercel (`clumera-platform-management`, Neon `clumera-platform-management`). La contraseña de administración se elige en `/configurar` y su hash se carga en `MANAGEMENT_ADMIN_PASSWORD_HASH`. La licencia de Lab ya está firmada con la clave de Management.
 - `main` como rama por defecto y protección de rama (hoy la rama por defecto es `fase-0/base-plataforma`).
 - CAPTCHA liviano en endpoints públicos (el plan lo pide; hoy hay límite de solicitudes).
 - Restaurar Lab por sesión de demo (hoy vacía y resiembra la base dedicada entera).
