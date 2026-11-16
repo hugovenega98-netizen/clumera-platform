@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function AccountPage() {
   const session = await requireSession('/cuenta');
   return (
-    <AppShell firstName={session.firstName}>
+    <AppShell session={session} current="/cuenta" title="Mi cuenta">
       <h1>Mi cuenta</h1>
       <Card title={`${session.firstName} ${session.lastName}`}>
         <p className="cx-muted">Usuario: {session.login}</p>

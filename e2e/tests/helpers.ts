@@ -10,7 +10,7 @@ export async function restoreLab(page: Page) {
 
 export async function loginAs(page: Page, profile: string) {
   await page.goto(`${LAB_URL}/lab`);
-  await page.getByRole('button', { name: profile, exact: true }).click();
+  await page.getByRole('button', { name: `Entrar como ${profile}`, exact: true }).click();
   await page.waitForURL(`${LAB_URL}/`);
 }
 

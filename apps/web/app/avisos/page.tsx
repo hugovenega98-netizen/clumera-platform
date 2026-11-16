@@ -18,8 +18,11 @@ export default async function InboxPage() {
     orderBy: { createdAt: 'desc' },
     take: 50,
   });
+  // Abrir la bandeja marca como leídos los avisos mostrados (la campana deja de contarlos).
+  const unreadIds = items.filter((n) => !n.readAt).map((n) => n.id);
+  if (unreadIds.length) await getPrisma().notification.updateMany({ where: { id: { in: unreadIds }, personId: session.personId }, data: { readAt: new Date() } });
   return (
-    <AppShell firstName={session.firstName}>
+    <AppShell session={session} current="/avisos" title="Avisos">
       <h1>Avisos</h1>
       <Card>
         {items.length === 0 ? (

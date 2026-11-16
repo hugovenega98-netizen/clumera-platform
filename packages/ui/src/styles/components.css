@@ -167,3 +167,297 @@
     font-size: var(--cx-fs-small);
   }
 }
+
+/* ───── Marco de la app: mobile first (barra + dock), escritorio con menú lateral ───── */
+@layer clumera.components {
+  .cx-shell {
+    min-height: 100dvh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+  .cx-shell__side {
+    display: none;
+  }
+  .cx-shell__top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .cx-shell__main {
+    min-width: 0;
+    padding-bottom: calc(var(--cx-dock-h) + env(safe-area-inset-bottom, 0px));
+  }
+  .cx-dock {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 10;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    height: var(--cx-dock-h);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--cx-surface);
+    border-top: 1px solid var(--cx-line);
+  }
+  .cx-dock a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cx-text-2);
+    text-decoration: none;
+    min-width: var(--cx-touch);
+  }
+  .cx-dock a[aria-current='page'] {
+    color: var(--cx-button);
+  }
+  .cx-topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--cx-space-3);
+    min-width: 0;
+    color: var(--cx-on-primary);
+    text-decoration: none;
+    font-family: var(--cx-font-cond);
+    font-weight: 600;
+    font-size: 18px;
+  }
+  .cx-topbar__brand img {
+    width: 32px;
+    height: 32px;
+    flex: none;
+  }
+  .cx-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--cx-space-2);
+  }
+  .cx-iconbtn {
+    position: relative;
+    width: var(--cx-touch);
+    height: var(--cx-touch);
+    border-radius: var(--cx-r-btn);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cx-on-primary);
+    background: color-mix(in srgb, #fff 10%, transparent);
+    text-decoration: none;
+  }
+  .cx-iconbtn__badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: var(--cx-count);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cx-side-nav {
+    display: grid;
+    gap: 2px;
+  }
+  .cx-side-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--cx-space-3);
+    min-height: var(--cx-touch);
+    padding: 0 var(--cx-space-3);
+    border-radius: 10px;
+    color: var(--cx-on-primary-2);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .cx-side-nav a:hover {
+    background: color-mix(in srgb, #fff 8%, transparent);
+    color: var(--cx-on-primary);
+  }
+  .cx-side-nav a[aria-current='page'] {
+    background: var(--cx-surface);
+    color: var(--cx-primary);
+  }
+  .cx-side__label {
+    font-family: var(--cx-font-cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cx-on-primary-3);
+    padding: 0 var(--cx-space-3);
+  }
+  .cx-columns {
+    display: grid;
+    gap: var(--cx-space-4);
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  @media (min-width: 981px) {
+    .cx-shell {
+      grid-template-columns: var(--cx-sidebar-w) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+    }
+    .cx-shell__side {
+      grid-row: 1 / span 2;
+      display: flex;
+      flex-direction: column;
+      gap: var(--cx-space-5);
+      padding: var(--cx-space-5) var(--cx-space-3);
+      background: var(--cx-primary);
+      color: var(--cx-on-primary);
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .cx-shell__top {
+      position: static;
+      background: var(--cx-surface);
+      color: var(--cx-title);
+      border-bottom: 1px solid var(--cx-line);
+      padding: 0 var(--cx-space-6);
+    }
+    .cx-shell__top .cx-topbar__brand {
+      display: none;
+    }
+    .cx-shell__top .cx-iconbtn,
+    .cx-shell__top a {
+      color: var(--cx-title);
+    }
+    .cx-shell__top .cx-iconbtn {
+      background: transparent;
+      border: 1px solid var(--cx-line);
+    }
+    .cx-shell__main {
+      padding-bottom: 0;
+    }
+    .cx-shell__main .cx-page {
+      width: min(100%, 1240px);
+      margin: 0;
+      padding: var(--cx-space-5) var(--cx-space-6) var(--cx-space-6);
+    }
+    .cx-dock {
+      display: none;
+    }
+    .cx-columns {
+      grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+      gap: var(--cx-space-5);
+    }
+  }
+}
+
+/* ───── Pantallas sin sesión: tarjeta en el teléfono, panel de marca + formulario en escritorio ───── */
+@layer clumera.components {
+  .cx-auth__hero {
+    display: none;
+  }
+  @media (min-width: 981px) {
+    .cx-auth--split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      padding: 0;
+      place-items: stretch;
+      background: var(--cx-bg);
+    }
+    .cx-auth--split .cx-auth__hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: var(--cx-space-5);
+      padding: var(--cx-space-6) clamp(32px, 6vw, 96px);
+      background: linear-gradient(160deg, var(--cx-primary) 0%, var(--cx-primary-deep) 100%);
+      color: var(--cx-on-primary);
+    }
+    .cx-auth--split .cx-auth__hero img {
+      width: 72px;
+      height: 72px;
+    }
+    .cx-auth--split .cx-auth__hero h2 {
+      color: var(--cx-on-primary);
+      font-size: clamp(40px, 4vw, 56px);
+      margin: 0;
+    }
+    .cx-auth--split .cx-auth__hero p {
+      color: var(--cx-on-primary-2);
+      font-size: 20px;
+      max-width: 520px;
+      margin: 0;
+    }
+    .cx-auth--split .cx-auth__side {
+      display: grid;
+      place-items: center;
+      padding: var(--cx-space-6) var(--cx-space-5);
+    }
+    .cx-auth--split .cx-auth__brand {
+      display: none;
+    }
+  }
+}
+
+@layer clumera.components {
+  .cx-shell__title {
+    display: none;
+  }
+  @media (min-width: 981px) {
+    .cx-shell__title {
+      display: block;
+      flex: 1;
+      font-family: var(--cx-font-cond);
+      font-weight: 600;
+      font-size: 22px;
+      color: var(--cx-title);
+    }
+  }
+}
+
+@layer clumera.components {
+  .cx-tiles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--cx-space-3);
+  }
+  .cx-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cx-space-2);
+    min-height: 96px;
+    padding: var(--cx-space-3);
+    border: 1px solid var(--cx-line);
+    border-radius: var(--cx-r-card);
+    background: var(--cx-surface);
+    color: var(--cx-title);
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+  }
+  .cx-tile svg {
+    color: var(--cx-button);
+  }
+  .cx-tile:hover {
+    border-color: var(--cx-button);
+  }
+  @media (min-width: 600px) {
+    .cx-tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}

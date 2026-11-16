@@ -1,0 +1,89 @@
+/* Marco de Lab sobre los tokens de @clumera/ui. */
+.lab-top {
+  background: var(--cx-primary);
+  color: var(--cx-on-primary);
+  padding: var(--cx-space-3) var(--cx-space-4) 0;
+}
+.lab-top__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cx-space-3);
+  width: min(100%, 1240px);
+  margin: 0 auto;
+}
+.lab-top__app {
+  color: var(--cx-on-primary);
+  font-weight: 600;
+  min-height: var(--cx-touch);
+  display: inline-flex;
+  align-items: center;
+}
+.lab-tabs {
+  display: flex;
+  gap: var(--cx-space-1);
+  width: min(100%, 1240px);
+  margin: var(--cx-space-2) auto 0;
+  overflow-x: auto;
+}
+.lab-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cx-touch);
+  padding: 0 var(--cx-space-4);
+  border-radius: 10px 10px 0 0;
+  color: var(--cx-on-primary-2);
+  font-weight: 600;
+  text-decoration: none;
+}
+.lab-tabs a[aria-current='page'] {
+  background: var(--cx-bg);
+  color: var(--cx-title);
+}
+.lab-page {
+  width: min(100%, 1240px);
+}
+.lab-profiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--cx-space-3);
+  grid-template-columns: minmax(0, 1fr);
+}
+.lab-profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cx-space-2);
+  height: 100%;
+  padding: var(--cx-space-3);
+  border: 1px solid var(--cx-line);
+  border-radius: var(--cx-r-card);
+  background: var(--cx-surface);
+  box-sizing: border-box;
+}
+.lab-profile form {
+  margin-top: auto;
+}
+@media (min-width: 600px) {
+  .lab-profiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 981px) {
+  .lab-top {
+    padding: var(--cx-space-4) var(--cx-space-6) 0;
+  }
+  .lab-page {
+    padding: var(--cx-space-5) var(--cx-space-6) var(--cx-space-6);
+  }
+  .lab-profiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .lab-mail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--cx-space-4);
+    align-items: start;
+  }
+}

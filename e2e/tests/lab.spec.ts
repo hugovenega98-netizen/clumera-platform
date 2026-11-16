@@ -22,7 +22,7 @@ test('el selector de perfiles abre una sesión real del core', async ({ page }) 
 
 test('la navegación muestra solo lo licenciado y visible', async ({ page }) => {
   await loginAs(page, 'Socio');
-  const nav = page.getByRole('navigation', { name: 'Secciones' });
+  const nav = page.getByRole('navigation', { name: 'Secciones del club' });
   await expect(nav.getByRole('link', { name: 'Reservar' })).toBeVisible();
   await expect(nav.getByRole('link', { name: 'Carnet' })).toBeVisible();
   // Tienda está visible en la config de Lab pero sin licencia en e2e.

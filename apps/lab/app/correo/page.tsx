@@ -1,5 +1,5 @@
 import { Card } from '@clumera/ui';
-import Link from 'next/link';
+import { LabShell } from '@/LabShell';
 import { guardedDb } from '@/lab';
 
 export const dynamic = 'force-dynamic';
@@ -12,12 +12,10 @@ export default async function LabMail() {
   const db = await guardedDb();
   const messages = await db.devMailMessage.findMany({ orderBy: { createdAt: 'desc' }, take: 30 });
   return (
-    <main className="cx-page cx-stack">
-      <Link href="/" className="cx-link">
-        ← Volver a Lab
-      </Link>
+    <LabShell current="/correo">
       <h1>Correos enviados</h1>
       {messages.length === 0 ? <p>No hay correos.</p> : null}
+      <div className="lab-mail cx-stack">
       {messages.map((m) => (
         <Card key={m.id} title={m.subject}>
           <p className="cx-muted">
@@ -26,6 +24,7 @@ export default async function LabMail() {
           <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{linkify(m.text)}</p>
         </Card>
       ))}
-    </main>
+      </div>
+    </LabShell>
   );
 }

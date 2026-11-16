@@ -1,6 +1,6 @@
 import { catalog } from '@clumera/catalog';
 import { Card, Notice } from '@clumera/ui';
-import Link from 'next/link';
+import { LabShell } from '@/LabShell';
 import { guardedDb } from '@/lab';
 import { evaluateMatrix } from '@/permissions-eval';
 import { LAB_PROFILES } from '@/profiles';
@@ -31,10 +31,7 @@ export default async function PermissionsPage() {
   const { rows, ok } = await evaluateMatrix(db, modules);
   const mismatches = rows.flatMap((r) => r.cells.filter((c) => c.allowed !== c.expected).map((c) => `${r.case.label} · ${c.profile}`));
   return (
-    <main className="cx-page cx-stack">
-      <Link href="/" className="cx-link">
-        ← Volver a Lab
-      </Link>
+    <LabShell current="/permisos">
       <h1>Permisos por perfil</h1>
       <p className="cx-muted">
         Calculado con los roles, ámbitos y membresías sembrados y {source}. ✓ puede · — no puede. Cada acción nueva suma su fila en{' '}
@@ -85,6 +82,6 @@ export default async function PermissionsPage() {
           </table>
         </div>
       </Card>
-    </main>
+    </LabShell>
   );
 }
