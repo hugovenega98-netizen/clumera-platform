@@ -20,7 +20,7 @@ const serwist = new Serwist({
   // Nunca cachear la API: datos personales, saldos y validaciones siempre frescos.
   runtimeCaching: [{ matcher: ({ url }) => url.pathname.startsWith('/api/'), handler: new NetworkOnly() }, ...defaultCache],
   fallbacks: {
-    entries: [{ url: '/~offline', matcher: ({ request }) => request.destination === 'document' }],
+    entries: [{ url: '/offline.html', matcher: ({ request }) => request.destination === 'document' }],
   },
 });
 

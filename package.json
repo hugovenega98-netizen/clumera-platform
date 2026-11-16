@@ -10,18 +10,20 @@
   "workspaces": [
     "packages/*",
     "packages/modules/*",
-    "apps/*"
+    "apps/*",
+    "e2e"
   ],
   "scripts": {
     "dev": "turbo run dev --filter=@clumera/web",
-    "build": "turbo run build",
+    "build": "turbo run build --filter=@clumera/web --filter=@clumera/management",
     "typecheck": "turbo run typecheck",
     "lint": "eslint .",
     "test": "turbo run test",
     "check:deps": "node tooling/check-dependency-rules.mjs",
     "check": "npm run check:deps && npm run lint && npm run typecheck && npm run test",
     "license:dev": "tsx tooling/dev-license.ts",
-    "test:db:prepare": "node tooling/prepare-test-databases.mjs"
+    "test:db:prepare": "node tooling/prepare-test-databases.mjs",
+    "e2e": "npm run e2e -w @clumera/e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",

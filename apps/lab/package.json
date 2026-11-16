@@ -3,12 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "clumera": { "layer": "app" },
+  "clumera": {
+    "layer": "app"
+  },
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "typecheck": "next typegen && tsc -p tsconfig.json",
+    "typecheck": "CLUMERA_CLIENT_ID=clumera-lab LAB_CORE_URL=http://localhost:3000 next typegen && tsc -p tsconfig.json",
     "test": "vitest run",
     "seed": "tsx scripts/seed.ts"
   },

@@ -47,7 +47,8 @@
   },
   "globalEnv": [
     "CLUMERA_CLIENT_ID",
-    "NEXT_PUBLIC_*"
+    "NEXT_PUBLIC_*",
+    "LAB_CORE_URL"
   ],
   "globalPassThroughEnv": [
     "CLUMERA_LICENSE",
@@ -58,6 +59,15 @@
     "DATABASE_URL",
     "VERCEL_*",
     "NEXT_TELEMETRY_DISABLED",
-    "TEST_PG_URL"
+    "TEST_PG_URL",
+    "CLUMERA_LAB",
+    "LAB_DATABASE_NAME",
+    "CLUMERA_PUBLIC_ORIGIN",
+    "CLUMERA_MAIL_DRIVER",
+    "RESEND_API_KEY",
+    "MAIL_FROM",
+    "CRON_SECRET",
+    "CLUMERA_DOC_PEPPER",
+    "MANAGEMENT_*"
   ]
 }

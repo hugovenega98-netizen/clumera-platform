@@ -59,3 +59,38 @@ export function buildWebManifest(cfg: ClientConfig): WebAppManifest {
     ],
   };
 }
+
+const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+/**
+ * Página sin conexión: HTML estático sin JavaScript, para que el service worker la sirva en
+ * cualquier navegación fallida sin depender de la app. Lleva la identidad del club.
+ */
+export function renderOfflineHtml(cfg: ClientConfig): string {
+  const c = cfg.colors;
+  return `<!doctype html>
+<html lang="${esc(cfg.locale.language)}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="${c.theme}">
+<title>Sin conexión · ${esc(cfg.identity.displayName)}</title>
+<style>
+body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px 16px;box-sizing:border-box;font-family:Barlow,system-ui,-apple-system,'Segoe UI',sans-serif;background:${c.background};color:${c.text}}
+main{width:min(100%,420px);background:${c.surface};border:1px solid #dce5ee;border-radius:16px;padding:24px}
+img{width:48px;height:48px}h1{font-size:24px;margin:16px 0 8px}p{line-height:1.5}
+a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 24px;border-radius:12px;background:${c.button};color:#fff;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+<img src="${esc(cfg.assets.emblem)}" alt="">
+<h1>Estás sin conexión</h1>
+<p>No pudimos conectarnos con ${esc(cfg.identity.displayName)}. Revisá tu conexión y volvé a intentar.</p>
+<p>Lo que ya abriste antes sigue disponible.</p>
+<a href="/">Reintentar</a>
+</main>
+</body>
+</html>
+`;
+}

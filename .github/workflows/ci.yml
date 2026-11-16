@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -12,14 +13,25 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+  # Servidor PostgreSQL efímero del job: una base por paquete (clumera_test_*). Nunca una base de clientes.
+  TEST_PG_URL: postgresql://postgres:postgres@localhost:5432
+
 jobs:
   check:
     name: Reglas, lint, tipos, pruebas y build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      NEXT_TELEMETRY_DISABLED: '1'
-      # Club con el que se compila en CI.
       CLUMERA_CLIENT_ID: club-ejemplo
     steps:
       - uses: actions/checkout@v5
@@ -32,9 +44,49 @@ jobs:
         run: npm run check:deps
       - name: Lint
         run: npm run lint
+      - name: Bases de prueba
+        run: npm run test:db:prepare
+      - name: Migraciones al día con el esquema
+        run: |
+          DATABASE_URL=$TEST_PG_URL/clumera_test_db npm run check:drift -w @clumera/db
+          MANAGEMENT_DATABASE_URL=$TEST_PG_URL/clumera_test_management npx -w @clumera/management prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
       - name: Tipos
         run: npm run typecheck
-      - name: Pruebas
+      - name: Pruebas (unitarias e integración sobre PostgreSQL)
         run: npm run test
       - name: Build
         run: npm run build
+
+  e2e:
+    name: Recorridos Playwright (Lab + Management)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: check
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx -w @clumera/e2e playwright install --with-deps chromium
+      - name: Recorridos (escritorio, móvil y 320 px)
+        run: npm run e2e
+        env:
+          CI: '1'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7

@@ -1,5 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeFileSync } from 'node:fs';
+import { renderOfflineHtml } from '@clumera/config';
 import { assertConfigMatchesFolder, clientDir, loadClientConfig, missingAssets, resolveClientConfigPath, syncClientAssets } from '@clumera/config/node';
 import { withSerwist } from '@serwist/turbopack';
 import type { NextConfig } from 'next';
@@ -12,6 +14,7 @@ const configFile = resolveClientConfigPath();
 const clientConfig = loadClientConfig(configFile);
 assertConfigMatchesFolder(clientConfig, configFile);
 syncClientAssets(clientDir(), path.join(here, 'public'));
+writeFileSync(path.join(here, 'public', 'offline.html'), renderOfflineHtml(clientConfig));
 const missing = missingAssets(clientConfig, path.join(here, 'public'));
 if (missing.length) throw new Error(`client.config.json apunta a recursos inexistentes:\n  - ${missing.join('\n  - ')}`);
 

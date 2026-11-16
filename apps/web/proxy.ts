@@ -29,5 +29,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Todo menos estáticos, el service worker y el manifiesto.
-  matcher: ['/((?!_next/|serwist/|icons/|branding/|manifest.webmanifest|favicon.ico|robots.txt).*)'],
+  matcher: ['/((?!_next/|serwist/|icons/|branding/|manifest.webmanifest|offline.html|favicon.ico|robots.txt).*)'],
 };

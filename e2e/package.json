@@ -1,0 +1,18 @@
+{
+  "name": "@clumera/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "clumera": { "layer": "app" },
+  "scripts": {
+    "e2e": "tsx run.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@clumera/identity": "*",
+    "@clumera/kernel": "*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

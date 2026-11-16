@@ -1,0 +1,65 @@
+// Clumera Management: registro de instalaciones (una por club) y licencias firmadas.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum InstallationStatus {
+  provisioning // dada de alta, falta desplegar
+  active
+  suspended
+  archived
+}
+
+model Installation {
+  id           String             @id @default(cuid())
+  clientId     String             @unique
+  clubName     String
+  displayName  String
+  subdomain    String             @unique
+  customDomain String?            @unique
+  status       InstallationStatus @default(provisioning)
+  /// Proyecto de Vercel y base de Neon de la instalación (se completan al desplegar).
+  vercelProjectId String?
+  neonProjectId   String?
+  coreVersion  String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  licenses     License[]
+  events       InstallationEvent[]
+}
+
+model License {
+  id             String       @id @default(cuid())
+  licenseId      String       @unique
+  installationId String
+  installation   Installation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  modules        String[]
+  sportsLimit    Int
+  issuedAt       DateTime
+  expiresAt      DateTime?
+  /// Token firmado (Ed25519) que va a CLUMERA_LICENSE de la instalación. No es secreto: solo verificable.
+  token          String
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([installationId, revokedAt])
+}
+
+/// Historial de lo que se hizo en cada instalación (alta, licencias, despliegues).
+model InstallationEvent {
+  id             String       @id @default(cuid())
+  installationId String
+  installation   Installation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  type           String
+  detail         Json?
+  actor          String
+  createdAt      DateTime     @default(now())
+
+  @@index([installationId, createdAt])
+}

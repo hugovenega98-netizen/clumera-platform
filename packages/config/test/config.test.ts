@@ -91,3 +91,15 @@ describe('clientes del repo', () => {
     }
   });
 });
+
+describe('página sin conexión', () => {
+  it('es HTML estático con la identidad del club y sin scripts', async () => {
+    const { renderOfflineHtml } = await import('../src');
+    const r = parseClientConfig(example);
+    if (!r.ok) throw r.error;
+    const html = renderOfflineHtml({ ...r.value, identity: { ...r.value.identity, displayName: 'Club <A>' } });
+    expect(html).toContain('Estás sin conexión');
+    expect(html).toContain('Club &lt;A&gt;');
+    expect(html).not.toMatch(/<script/i);
+  });
+});
