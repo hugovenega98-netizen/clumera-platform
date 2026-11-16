@@ -1,0 +1,14 @@
+{
+  "name": "@clumera/kernel",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "clumera": { "layer": "kernel" },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  }
+}

@@ -1,0 +1,77 @@
+@layer clumera.components {
+  .cx-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cx-space-2);
+    min-height: var(--cx-touch);
+    min-width: var(--cx-touch);
+    padding: 0 var(--cx-space-5);
+    border-radius: var(--cx-r-btn);
+    border: 1px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .cx-btn[disabled],
+  .cx-btn[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .cx-btn--primary {
+    background: var(--cx-button);
+    color: #fff;
+  }
+  .cx-btn--secondary {
+    background: var(--cx-surface);
+    color: var(--cx-title);
+    border-color: var(--cx-line-strong);
+  }
+  .cx-btn--danger {
+    background: var(--cx-bad);
+    color: #fff;
+  }
+  .cx-btn--block {
+    width: 100%;
+  }
+
+  .cx-card {
+    background: var(--cx-surface);
+    border: 1px solid var(--cx-line);
+    border-radius: var(--cx-r-card);
+    box-shadow: var(--cx-shadow-card);
+    padding: var(--cx-space-5);
+  }
+  .cx-card__title {
+    font-size: var(--cx-fs-section);
+    margin-bottom: var(--cx-space-2);
+  }
+
+  .cx-notice {
+    border-radius: var(--cx-r-btn);
+    padding: var(--cx-space-3) var(--cx-space-4);
+    font-size: var(--cx-fs-small);
+  }
+  .cx-notice--ok {
+    background: var(--cx-ok-bg);
+    color: var(--cx-ok);
+  }
+  .cx-notice--warn {
+    background: var(--cx-warn-bg);
+    color: var(--cx-warn);
+  }
+  .cx-notice--bad {
+    background: var(--cx-bad-bg);
+    color: var(--cx-bad);
+  }
+
+  .cx-page {
+    width: min(100%, 1040px);
+    margin: 0 auto;
+    padding: var(--cx-space-5) var(--cx-space-4) calc(var(--cx-dock-h) + var(--cx-space-5));
+  }
+  .cx-stack {
+    display: grid;
+    gap: var(--cx-space-4);
+  }
+}

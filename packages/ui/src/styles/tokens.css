@@ -1,0 +1,64 @@
+/* Sistema visual de Clumera 2.0, adaptado de clumera-cmp/src/styles/rediseno/tokens.css.
+   Los colores de identidad salen SIEMPRE de las variables --client-* que la app genera desde
+   client.config.json; los valores de respaldo son neutros. Nunca fijar acá colores de un club. */
+@layer clumera.tokens {
+  :root {
+    --cx-primary: var(--client-primary, #082447);
+    --cx-primary-deep: var(--client-primary-deep, #06192f);
+    --cx-secondary: var(--client-secondary, #39647a);
+    --cx-button: var(--client-button, #08639d);
+    --cx-accent: var(--client-accent, #06bfaf);
+    --cx-bg: var(--client-background, #f3f8fc);
+    --cx-text: var(--client-text, #142d4b);
+    --cx-surface: var(--client-surface, #fff);
+
+    --cx-title: #0e2238;
+    --cx-text-2: #4a5b70;
+    --cx-text-3: #66768a;
+    --cx-line: #dce5ee;
+    --cx-line-soft: #e6edf4;
+    --cx-line-strong: #cbd7e3;
+    --cx-bad: #b42318;
+    --cx-bad-bg: #fee4e2;
+    --cx-warn: #93370d;
+    --cx-warn-bg: #fef0c7;
+    --cx-ok: #067647;
+    --cx-ok-bg: #dcfae6;
+    --cx-count: #d92d20;
+
+    --cx-on-primary: #fff;
+    --cx-on-primary-2: color-mix(in srgb, #fff 80%, var(--cx-primary));
+    --cx-on-primary-3: color-mix(in srgb, #fff 58%, var(--cx-primary));
+
+    --cx-font: Barlow, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --cx-font-cond: 'Barlow Semi Condensed', Barlow, system-ui, sans-serif;
+    --cx-fs-page: 28px;
+    --cx-fs-section: 21px;
+    --cx-fs-body: 16px;
+    --cx-fs-small: 14px;
+    --cx-fs-tag: 13px;
+
+    --cx-r-card: 16px;
+    --cx-r-btn: 12px;
+    --cx-r-tag: 6px;
+    --cx-space-1: 4px;
+    --cx-space-2: 8px;
+    --cx-space-3: 12px;
+    --cx-space-4: 16px;
+    --cx-space-5: 24px;
+    --cx-space-6: 32px;
+
+    /* Objetivo táctil mínimo (plan: 44 px). */
+    --cx-touch: 44px;
+    --cx-dock-h: 76px;
+    --cx-topbar-h: 64px;
+    --cx-sidebar-w: 264px;
+    --cx-shadow-card: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+  }
+
+  @media (min-width: 981px) {
+    :root {
+      --cx-fs-page: 32px;
+    }
+  }
+}

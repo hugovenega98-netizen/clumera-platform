@@ -1,0 +1,27 @@
+{
+  "name": "@clumera/catalog",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "clumera": {
+    "layer": "catalog"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@clumera/kernel": "*",
+    "@clumera/module-facilities": "*",
+    "@clumera/module-bookings": "*",
+    "@clumera/module-access": "*",
+    "@clumera/module-schools": "*",
+    "@clumera/module-summer": "*",
+    "@clumera/module-tournaments": "*",
+    "@clumera/module-events": "*",
+    "@clumera/module-store": "*"
+  }
+}

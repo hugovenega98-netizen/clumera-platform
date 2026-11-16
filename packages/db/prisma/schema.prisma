@@ -1,0 +1,342 @@
+// Clumera 2.0 — esquema de la Fase 0.
+// Una base por club (Neon). La Persona es la entidad central: existe una sola vez y todo
+// (membresía, roles, deportes, servicios, cargos) se cuelga de ella. La cuenta es opcional.
+// Los dominios de Hito A en adelante (deportes, finanzas, agenda, credenciales, inscripciones)
+// se agregan en sus propias migraciones.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────── Identidad ─────────────
+
+model Person {
+  id           String    @id @default(cuid())
+  firstName    String
+  lastName     String
+  /// HMAC del documento normalizado: permite buscar y deduplicar sin guardar el número legible.
+  docDigest    String?   @unique
+  docLast4     String?
+  birthDate    DateTime? @db.Date
+  email        String?
+  phone        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  account             UserAccount?
+  memberships         ClubMembership[]
+  roles               RoleAssignment[]
+  familyLinks         FamilyRelationship[]
+  pickupsAsMinor      PickupAuthorization[] @relation("PickupMinor")
+  pickupsAsAuthorized PickupAuthorization[] @relation("PickupAuthorized")
+  notifications       Notification[]
+
+  @@index([lastName, firstName])
+  @@index([email])
+}
+
+enum AccountStatus {
+  pending   // creada, sin activar
+  active
+  locked    // bloqueada por intentos fallidos
+  disabled
+}
+
+model UserAccount {
+  id             String        @id @default(cuid())
+  personId       String        @unique
+  person         Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  /// Email o usuario, normalizado en minúsculas.
+  login          String        @unique
+  /// Nulo hasta activar por enlace. Nunca se usa el documento como contraseña.
+  passwordHash   String?
+  status         AccountStatus @default(pending)
+  failedAttempts Int           @default(0)
+  lockedUntil    DateTime?
+  lastLoginAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  sessions          Session[]
+  activationTokens  ActivationToken[]
+  pushSubscriptions PushSubscription[]
+}
+
+model Session {
+  id            String      @id @default(cuid())
+  accountId     String
+  account       UserAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// SHA-256 del token de la cookie httpOnly; el token en claro nunca se guarda.
+  tokenHash     String      @unique
+  /// Espacio activo (socio, deporte, coach, instalaciones…). Cambiarlo no cambia la identidad.
+  activeContext String?
+  userAgent     String?
+  createdAt     DateTime    @default(now())
+  lastSeenAt    DateTime    @default(now())
+  expiresAt     DateTime
+  revokedAt     DateTime?
+
+  @@index([accountId])
+}
+
+enum TokenPurpose {
+  activation
+  password_reset
+}
+
+model ActivationToken {
+  id        String       @id @default(cuid())
+  accountId String
+  account   UserAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  purpose   TokenPurpose
+  /// Enlace de un solo uso: se guarda el hash.
+  tokenHash String       @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime     @default(now())
+
+  @@index([accountId, purpose])
+}
+
+// ───────────── Membresía ─────────────
+
+model MembershipCategory {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  name        String
+  active      Boolean          @default(true)
+  memberships ClubMembership[]
+}
+
+enum MembershipStatus {
+  active
+  suspended
+  inactive
+  resigned
+}
+
+model ClubMembership {
+  id           String                   @id @default(cuid())
+  personId     String
+  person       Person                   @relation(fields: [personId], references: [id])
+  categoryId   String
+  category     MembershipCategory       @relation(fields: [categoryId], references: [id])
+  memberNumber String?                  @unique
+  status       MembershipStatus         @default(active)
+  validFrom    DateTime                 @db.Date
+  validTo      DateTime?                @db.Date
+  createdAt    DateTime                 @default(now())
+  history      MembershipStatusChange[]
+
+  @@index([personId])
+}
+
+model MembershipStatusChange {
+  id           String           @id @default(cuid())
+  membershipId String
+  membership   ClubMembership   @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  fromStatus   MembershipStatus?
+  toStatus     MembershipStatus
+  reason       String?
+  changedById  String?
+  changedAt    DateTime         @default(now())
+
+  @@index([membershipId, changedAt])
+}
+
+// ───────────── Familia ─────────────
+
+model FamilyGroup {
+  id        String               @id @default(cuid())
+  name      String
+  createdAt DateTime             @default(now())
+  members   FamilyRelationship[]
+}
+
+enum FamilyRole {
+  guardian    // responsable
+  dependent   // representado
+  member
+}
+
+model FamilyRelationship {
+  id       String      @id @default(cuid())
+  groupId  String
+  group    FamilyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  personId String
+  person   Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
+  role     FamilyRole
+  /// madre, padre, tutor, hijo/a…
+  relation String?
+
+  @@unique([groupId, personId])
+  @@index([personId])
+}
+
+model PickupAuthorization {
+  id                 String    @id @default(cuid())
+  minorId            String
+  minor              Person    @relation("PickupMinor", fields: [minorId], references: [id], onDelete: Cascade)
+  authorizedPersonId String
+  authorizedPerson   Person    @relation("PickupAuthorized", fields: [authorizedPersonId], references: [id], onDelete: Cascade)
+  validFrom          DateTime  @default(now())
+  validTo            DateTime?
+  note               String?
+
+  @@unique([minorId, authorizedPersonId])
+}
+
+// ───────────── Roles y permisos ─────────────
+
+model Role {
+  code        String           @id
+  name        String
+  /// Permisos `<modulo>:<accion>`, con comodines y sufijo `:self` (ver @clumera/kernel can()).
+  permissions String[]
+  /// Roles base del sistema: no se borran desde la interfaz.
+  system      Boolean          @default(false)
+  assignments RoleAssignment[]
+}
+
+enum ScopeType {
+  club
+  sport
+  team
+  venue
+  resource
+  event
+  activity
+}
+
+model RoleAssignment {
+  id        String    @id @default(cuid())
+  personId  String
+  person    Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  roleCode  String
+  role      Role      @relation(fields: [roleCode], references: [code])
+  scopeType ScopeType
+  /// Vacío para alcance `club`. No es nulo para que la restricción única funcione en PostgreSQL.
+  scopeId   String    @default("")
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  @@unique([personId, roleCode, scopeType, scopeId])
+  @@index([scopeType, scopeId])
+}
+
+// ───────────── Plataforma ─────────────
+
+/// Licencia firmada por Management y ya verificada. La fuente de verdad es el token firmado.
+model ModuleLicense {
+  id        String    @id @default(cuid())
+  licenseId String    @unique
+  token     String
+  modules   String[]
+  issuedAt  DateTime
+  expiresAt DateTime?
+  syncedAt  DateTime  @default(now())
+  active    Boolean   @default(true)
+}
+
+model PushSubscription {
+  id            String      @id @default(cuid())
+  accountId     String
+  account       UserAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  endpoint      String      @unique
+  p256dh        String
+  auth          String
+  userAgent     String?
+  createdAt     DateTime    @default(now())
+  lastSuccessAt DateTime?
+  failureCount  Int         @default(0)
+
+  @@index([accountId])
+}
+
+model Notification {
+  id         String                 @id @default(cuid())
+  personId   String
+  person     Person                 @relation(fields: [personId], references: [id], onDelete: Cascade)
+  /// Módulo o servicio de origen (se muestra en la bandeja).
+  source     String
+  /// Clave del acontecimiento: evita avisos duplicados por el mismo hecho.
+  eventKey   String
+  title      String
+  body       String
+  url        String?
+  createdAt  DateTime               @default(now())
+  readAt     DateTime?
+  deliveries NotificationDelivery[]
+
+  @@unique([personId, eventKey])
+  @@index([personId, createdAt])
+}
+
+enum DeliveryChannel {
+  inbox
+  push
+  email
+}
+
+enum DeliveryStatus {
+  pending
+  sent
+  failed
+  skipped
+}
+
+model NotificationDelivery {
+  id             String          @id @default(cuid())
+  notificationId String
+  notification   Notification    @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  channel        DeliveryChannel
+  status         DeliveryStatus  @default(pending)
+  attempts       Int             @default(0)
+  lastError      String?
+  sentAt         DateTime?
+
+  @@unique([notificationId, channel])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  actorPersonId String?
+  action        String
+  entityType    String
+  entityId      String
+  /// Cambios sin datos clínicos ni documentos en claro.
+  diff          Json?
+  requestId     String?
+  at            DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorPersonId, at])
+}
+
+/// Tabla de salida de eventos de dominio: se escribe en la misma transacción que el cambio.
+model OutboxEvent {
+  id          String    @id
+  type        String
+  source      String
+  payload     Json
+  occurredAt  DateTime
+  publishedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+
+  @@index([publishedAt, occurredAt])
+}
+
+/// Idempotencia de consumidores: un evento se procesa una sola vez por consumidor.
+model ProcessedEvent {
+  consumer    String
+  eventId     String
+  processedAt DateTime @default(now())
+
+  @@id([consumer, eventId])
+}

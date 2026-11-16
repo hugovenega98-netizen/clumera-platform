@@ -1,0 +1,29 @@
+{
+  "name": "@clumera/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "clumera": {
+    "layer": "service"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "validate": "prisma validate",
+    "typecheck": "prisma generate && tsc -p tsconfig.json",
+    "test": "vitest run",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@clumera/kernel": "*",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
+    "prisma": "7.10.1"
+  }
+}

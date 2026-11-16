@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "identity": {
+    "clientId": "club-ejemplo",
+    "clubName": "Club Atlético Ejemplo",
+    "displayName": "Club Ejemplo",
+    "shortName": "Ejemplo",
+    "tagline": "Un club, toda su comunidad.",
+    "footer": "Club Ejemplo · Gestión del club · Información protegida."
+  },
+  "domain": {
+    "subdomain": "ejemplo",
+    "customDomain": null
+  },
+  "locale": {
+    "language": "es-AR",
+    "timeZone": "America/Argentina/Buenos_Aires",
+    "currency": "ARS"
+  },
+  "colors": {
+    "primary": "#1f3149",
+    "primaryDeep": "#132033",
+    "secondary": "#39647a",
+    "accent": "#b8c96b",
+    "button": "#245e73",
+    "text": "#243746",
+    "background": "#f6f8fa",
+    "surface": "#ffffff",
+    "theme": "#1f3149"
+  },
+  "assets": {
+    "logo": "/branding/logo.svg",
+    "emblem": "/branding/escudo.svg",
+    "emblemOnDark": "/branding/escudo-blanco.svg",
+    "favicon": "/branding/favicon.svg",
+    "pwaIcon192": "/icons/icon-192.png",
+    "pwaIcon512": "/icons/icon-512.png",
+    "pwaMaskable": "/icons/icon-maskable-512.png",
+    "appleTouchIcon": "/icons/apple-touch-icon.png"
+  },
+  "pwa": {
+    "name": "Club Ejemplo",
+    "shortName": "Ejemplo",
+    "description": "La app del Club Ejemplo: carnet, pagos, deportes y reservas."
+  },
+  "login": {
+    "title": "Club Ejemplo",
+    "description": "Ingresá para ver tu carnet, tus pagos y tus actividades.",
+    "layout": "split"
+  },
+  "modules": {
+    "visible": ["facilities", "bookings", "access"]
+  }
+}

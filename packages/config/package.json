@@ -1,0 +1,19 @@
+{
+  "name": "@clumera/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "clumera": { "layer": "service" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@clumera/kernel": "*",
+    "zod": "^4.6.7"
+  }
+}

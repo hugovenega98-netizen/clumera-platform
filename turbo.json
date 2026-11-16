@@ -1,0 +1,43 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "stream",
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "public/sw.js"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^typecheck"
+      ]
+    },
+    "test": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  },
+  "globalEnv": [
+    "CLUMERA_CLIENT_CONFIG",
+    "NEXT_PUBLIC_*"
+  ],
+  "globalPassThroughEnv": [
+    "CLUMERA_LICENSE",
+    "CLUMERA_LICENSE_PUBLIC_KEY",
+    "CLUMERA_PUSH_TEST",
+    "VAPID_PRIVATE_KEY",
+    "VAPID_SUBJECT",
+    "DATABASE_URL",
+    "VERCEL_*",
+    "NEXT_TELEMETRY_DISABLED"
+  ]
+}
