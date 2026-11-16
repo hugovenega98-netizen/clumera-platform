@@ -461,3 +461,23 @@
     }
   }
 }
+
+/* Instrucciones de instalación de la app */
+.cx-install-help {
+  margin-top: var(--cx-space-3);
+  padding: var(--cx-space-3) var(--cx-space-4);
+  border-radius: 12px;
+  background: var(--cx-surface);
+  color: var(--cx-text);
+  border: 1px solid var(--cx-line);
+  text-align: left;
+}
+.cx-install-help ol {
+  margin: 0;
+  padding-left: 1.25em;
+  display: grid;
+  gap: var(--cx-space-1);
+}
+.cx-auth__install {
+  text-align: center;
+}
