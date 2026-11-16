@@ -47,3 +47,8 @@ test('alta de instalación con licencia, config y variables', async ({ page }) =
   await expect(page.getByText('Licencia nueva emitida.')).toBeVisible();
   await expect(page.getByText('bookings, facilities, store · 1 deportes')).toBeVisible();
 });
+
+test('la configuración inicial no funciona con la contraseña ya cargada', async ({ page }) => {
+  await page.goto(`${MGMT_URL}/configurar`);
+  await expect(notice(page)).toContainText('ya está configurada');
+});

@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function LoginPage() {
   if (await getAdmin()) redirect('/');
+  if (!process.env.MANAGEMENT_ADMIN_PASSWORD_HASH?.trim()) redirect('/configurar');
   return (
     <main className="cx-auth">
       <div className="cx-auth__panel">
