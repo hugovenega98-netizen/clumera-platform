@@ -1,3 +1,4 @@
+import { InstallApp } from '@clumera/ui';
 import type { ReactNode } from 'react';
 import { clientConfig } from '@/lib/client-config';
 
@@ -26,6 +27,7 @@ export function AuthShell({ title, children }: { title: string; children: ReactN
           </div>
           <h1>{title}</h1>
           {children}
+          <InstallApp appName={clientConfig.pwa.shortName} variant="secondary" className="cx-auth__install" />
         </div>
       </div>
     </main>

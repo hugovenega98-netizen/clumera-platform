@@ -46,7 +46,7 @@ export function buildWebManifest(cfg: ClientConfig): WebAppManifest {
     short_name: cfg.pwa.shortName,
     description: cfg.pwa.description,
     lang: cfg.locale.language,
-    start_url: '/?source=pwa',
+    start_url: `${cfg.pwa.startPath}?source=pwa`,
     scope: '/',
     display: 'standalone',
     orientation: 'portrait-primary',

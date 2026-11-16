@@ -5,7 +5,7 @@ test('manifiesto instalable con la identidad del club', async ({ request }) => {
   const res = await request.get(`${LAB_URL}/manifest.webmanifest`);
   expect(res.headers()['content-type']).toContain('manifest+json');
   const m = await res.json();
-  expect(m).toMatchObject({ name: 'Clumera Lab', short_name: 'Clumera Lab', display: 'standalone', start_url: '/?source=pwa' });
+  expect(m).toMatchObject({ name: 'Clumera Lab', short_name: 'Clumera Lab', display: 'standalone', start_url: '/lab?source=pwa', scope: '/' });
   const sizes = m.icons.map((i: { sizes: string }) => i.sizes);
   expect(sizes).toEqual(expect.arrayContaining(['192x192', '512x512']));
   expect(m.icons.some((i: { purpose: string }) => i.purpose === 'maskable')).toBe(true);
@@ -34,4 +34,51 @@ test('el service worker se registra y sirve la página sin conexión', async ({ 
   await expect(offline.getByRole('heading', { name: 'Estás sin conexión' })).toBeVisible();
   await expect(offline).toHaveURL(`${LAB_URL}/una-pagina-que-nunca-se-visito`);
   await context.setOffline(false);
+});
+
+test('Lab se ofrece para instalar: manifiesto enlazado y botón «Instalar app»', async ({ page }) => {
+  await page.goto(`${LAB_URL}/lab`);
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest');
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1);
+  // El service worker queda registrado para todo el origen, también desde /lab.
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.ready).scope)).toBe(`${LAB_URL}/`);
+  const install = page.getByRole('button', { name: 'Instalar app' });
+  await expect(install).toBeVisible();
+  // Sin aviso nativo del navegador (headless), el botón muestra los pasos del menú.
+  await install.click();
+  await expect(page.getByRole('region', { name: 'Cómo instalar la app' })).toContainText('Instalar app');
+});
+
+test('el botón usa el aviso nativo cuando el navegador lo ofrece', async ({ page }) => {
+  await page.goto(`${LAB_URL}/ingresar`);
+  const install = page.getByRole('button', { name: 'Instalar app' });
+  await expect(install).toBeVisible();
+  await page.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true }) as Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
+    e.prompt = async () => void ((window as unknown as { __prompted: boolean }).__prompted = true);
+    e.userChoice = Promise.resolve({ outcome: 'accepted' });
+    window.dispatchEvent(e);
+  });
+  await install.click();
+  expect(await page.evaluate(() => (window as unknown as { __prompted?: boolean }).__prompted)).toBe(true);
+  await expect(install).toBeHidden();
+});
+
+test.describe('iPhone', () => {
+  test.use({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
+  test('muestra los pasos de Safari para agregar a inicio', async ({ page }) => {
+    await page.goto(`${LAB_URL}/lab`);
+    await page.getByRole('button', { name: 'Instalar app' }).click();
+    await expect(page.getByRole('region', { name: 'Cómo instalar la app' })).toContainText('Agregar a inicio');
+  });
+});
+
+test('abierta desde el ícono (modo app) no muestra el botón', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = window.matchMedia.bind(window);
+    window.matchMedia = (q: string) => (q.includes('display-mode: standalone') ? ({ matches: true, media: q } as MediaQueryList) : original(q));
+  });
+  await page.goto(`${LAB_URL}/lab`);
+  await expect(page.getByRole('heading', { name: 'Clumera Lab', level: 1 })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Instalar app' })).toHaveCount(0);
 });

@@ -41,7 +41,8 @@
   "pwa": {
     "name": "Clumera Lab",
     "shortName": "Clumera Lab",
-    "description": "Gestión integral de clubes · Clumera Lab"
+    "description": "Gestión integral de clubes · Clumera Lab",
+    "startPath": "/lab"
   },
   "login": {
     "title": "Clumera Lab",
