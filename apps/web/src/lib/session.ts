@@ -1,16 +1,15 @@
 import 'server-only';
-import type { SessionInfo } from '@clumera/identity';
+import { sessionCookieName, sessionCookieOptions as cookieOptions, type SessionInfo } from '@clumera/identity';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { getAuth } from './services';
 
 const secure = process.env.NODE_ENV === 'production';
-/** `__Host-` obliga a Secure, Path=/ y sin Domain: la cookie no sale del origen del club. */
-export const SESSION_COOKIE = secure ? '__Host-clumera_session' : 'clumera_session';
+export const SESSION_COOKIE = sessionCookieName(secure);
 
 export function sessionCookieOptions(expires: Date) {
-  return { httpOnly: true, secure, sameSite: 'lax' as const, path: '/', expires };
+  return cookieOptions(secure, expires);
 }
 
 export const getCurrentSession = cache(async (): Promise<SessionInfo | null> => {

@@ -4,3 +4,4 @@ export * from './people';
 export * from './rate-limit';
 export { hashPassword, verifyPassword, randomToken, sha256 } from './crypto';
 export { passwordProblems } from './password-policy';
+export * from './cookie';

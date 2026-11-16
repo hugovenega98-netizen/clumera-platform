@@ -1,0 +1,31 @@
+{
+  "name": "@clumera/lab",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "clumera": { "layer": "app" },
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "typecheck": "next typegen && tsc -p tsconfig.json",
+    "test": "vitest run",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@clumera/catalog": "*",
+    "@clumera/config": "*",
+    "@clumera/db": "*",
+    "@clumera/identity": "*",
+    "@clumera/kernel": "*",
+    "@clumera/mail": "*",
+    "@clumera/ui": "*",
+    "next": "16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0"
+  }
+}
