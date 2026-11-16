@@ -74,6 +74,10 @@
     display: grid;
     gap: var(--cx-space-4);
   }
+  /* Que el contenido ancho (tablas) se desplace dentro de su tarjeta en vez de agrandar la página. */
+  .cx-stack > * {
+    min-width: 0;
+  }
 }
 
 @layer clumera.components {

@@ -35,6 +35,9 @@ export default async function LabHome({ searchParams }: { searchParams: Promise<
 
       <Card title="Herramientas">
         <div className="cx-stack">
+          <Link className="cx-btn cx-btn--secondary" href="/permisos">
+            Ver permisos por perfil
+          </Link>
           <Link className="cx-btn cx-btn--secondary" href="/correo">
             Ver correos enviados (activación y recuperación)
           </Link>

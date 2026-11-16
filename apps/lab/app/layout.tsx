@@ -1,3 +1,6 @@
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow-semi-condensed/600.css';
 import '@clumera/ui/styles.css';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';

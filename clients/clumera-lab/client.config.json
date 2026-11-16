@@ -2,11 +2,11 @@
   "schemaVersion": 2,
   "identity": {
     "clientId": "clumera-lab",
-    "clubName": "Club Lab Clumera",
+    "clubName": "Clumera Lab",
     "displayName": "Clumera Lab",
-    "shortName": "Lab",
-    "tagline": "Un club integral para probar Clumera.",
-    "footer": "Clumera Lab · Datos de demostración."
+    "shortName": "Clumera Lab",
+    "tagline": "Gestión, equipo y comunidad en un mismo lugar.",
+    "footer": "Clumera Lab · Datos de demostración · Los datos de salud requieren autorización y protección adecuadas."
   },
   "domain": {
     "subdomain": "lab",
@@ -18,34 +18,34 @@
     "currency": "ARS"
   },
   "colors": {
-    "primary": "#1f3149",
-    "primaryDeep": "#132033",
-    "secondary": "#39647a",
-    "accent": "#b8c96b",
-    "button": "#245e73",
-    "text": "#243746",
-    "background": "#f6f8fa",
-    "surface": "#ffffff",
-    "theme": "#1f3149"
+    "primary": "#082447",
+    "primaryDeep": "#06192F",
+    "secondary": "#08639D",
+    "accent": "#06BFAF",
+    "button": "#08639D",
+    "text": "#142D4B",
+    "background": "#F3F8FC",
+    "surface": "#FFFFFF",
+    "theme": "#082447"
   },
   "assets": {
-    "logo": "/branding/logo.svg",
-    "emblem": "/branding/escudo.svg",
-    "emblemOnDark": "/branding/escudo-blanco.svg",
-    "favicon": "/branding/favicon.svg",
-    "pwaIcon192": "/icons/icon-192.png",
-    "pwaIcon512": "/icons/icon-512.png",
-    "pwaMaskable": "/icons/icon-maskable-512.png",
-    "appleTouchIcon": "/icons/apple-touch-icon.png"
+    "logo": "/branding/clumera-lab-logo.svg",
+    "emblem": "/branding/clumera-lab-mark.svg",
+    "emblemOnDark": "/branding/clumera-lab-mark-light.svg",
+    "favicon": "/branding/clumera-lab-favicon.svg",
+    "pwaIcon192": "/icons/clumera-lab-192.png",
+    "pwaIcon512": "/icons/clumera-lab-512.png",
+    "pwaMaskable": "/icons/clumera-lab-maskable-512.png",
+    "appleTouchIcon": "/icons/clumera-lab-apple-touch.png"
   },
   "pwa": {
     "name": "Clumera Lab",
-    "shortName": "Lab",
-    "description": "Demo de Clumera: un club integral con datos de prueba."
+    "shortName": "Clumera Lab",
+    "description": "Gestión integral de clubes · Clumera Lab"
   },
   "login": {
     "title": "Clumera Lab",
-    "description": "Ingresá con un perfil de demostración o con tu cuenta de prueba.",
+    "description": "Ingresá para acceder a la gestión del club, planteles, entrenamientos y mucho más.",
     "layout": "split"
   },
   "modules": {

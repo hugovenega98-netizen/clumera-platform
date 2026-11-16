@@ -19,6 +19,7 @@ El plan vigente es «Clumera 2.0 — Plan integral del nuevo repositorio»; las 
 - Ningún módulo crea su propio sistema de cobros, usuarios, avisos o permisos: usa los servicios compartidos.
 - Cada módulo declara su manifiesto (permisos, rutas, navegación, eventos) y se agrega a `packages/catalog`.
 - La autorización real es siempre del servidor: `can()` del kernel combina licencia + rol + ámbito.
+- Los permisos se prueban con la capa de usuarios de Lab: los perfiles de `apps/lab/src/profiles.ts`. Todo permiso, rol o ruta protegida nueva suma su caso en `apps/lab/src/permissions-matrix.ts` (quién puede; el resto debe quedar denegado) y, si es una ruta, un recorrido por rol en `e2e/tests/permissions.spec.ts`. Si hace falta un perfil nuevo, se agrega al seed de Lab.
 - Toda ruta de módulo nueva debe llamar a `requireModule()` además de pasar por el proxy, y tener una prueba que la llame con la licencia apagada y espere 403.
 
 ## Reglas de producto
@@ -30,7 +31,7 @@ El plan vigente es «Clumera 2.0 — Plan integral del nuevo repositorio»; las 
 
 ## Verificación
 - Siempre: `npm run check` (con `TEST_PG_URL` y `npm run test:db:prepare`) y `npm run build`.
-- Cambios de pantallas, autenticación, Lab o Management: `npm run e2e`.
+- Cambios de pantallas, autenticación, permisos, Lab o Management: `npm run e2e`. La matriz se revisa también a mano en `/lab/permisos`.
 - Cambios de PWA o push: además `npm run build && npm run start -w @clumera/web` y revisar `/manifest.webmanifest` y `/serwist/sw.js`.
 - Cambios de esquema: nueva migración en `packages/db/prisma/migrations` y `npm run test -w @clumera/db` (aplica las migraciones sobre PGlite).
 - Documentar si una prueba necesita un entorno que no está disponible.

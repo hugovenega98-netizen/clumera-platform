@@ -5,7 +5,7 @@ test('manifiesto instalable con la identidad del club', async ({ request }) => {
   const res = await request.get(`${LAB_URL}/manifest.webmanifest`);
   expect(res.headers()['content-type']).toContain('manifest+json');
   const m = await res.json();
-  expect(m).toMatchObject({ name: 'Clumera Lab', short_name: 'Lab', display: 'standalone', start_url: '/?source=pwa' });
+  expect(m).toMatchObject({ name: 'Clumera Lab', short_name: 'Clumera Lab', display: 'standalone', start_url: '/?source=pwa' });
   const sizes = m.icons.map((i: { sizes: string }) => i.sizes);
   expect(sizes).toEqual(expect.arrayContaining(['192x192', '512x512']));
   expect(m.icons.some((i: { purpose: string }) => i.purpose === 'maskable')).toBe(true);

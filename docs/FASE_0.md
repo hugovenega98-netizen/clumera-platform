@@ -24,9 +24,10 @@ rechaza un módulo sin licencia.**
 | Correo: Resend o bandeja de desarrollo | `packages/mail` |
 | Avisos: bandeja única sin duplicados, push a todos los dispositivos de la cuenta, cron del outbox | `packages/notifications`, `apps/web/app/api/cron/outbox` |
 | PWA: manifiesto por club, Serwist, página sin conexión estática con la identidad del club | `apps/web` |
-| Lab mínimo: 12 perfiles, bandeja de correo, restaurar; reenvía al core de Lab (mismo origen) | `apps/lab` |
+| Lab mínimo con la marca de Clumera Lab: 12 perfiles, bandeja de correo, restaurar; reenvía al core de Lab (mismo origen) | `apps/lab`, `clients/clumera-lab` |
+| Matriz de permisos con los perfiles de Lab (integración, `/lab/permisos` y e2e por rol) | `apps/lab/src/permissions-matrix.ts` |
 | Management: acceso de administrador, alta de instalación con licencia firmada, config y variables, reemisión | `apps/management` |
-| Recorridos e2e (escritorio, móvil, 320 px) | `e2e/` |
+| Recorridos e2e (escritorio, móvil, 320 px), incluidos permisos por rol | `e2e/` |
 
 ## Lab desplegado
 
