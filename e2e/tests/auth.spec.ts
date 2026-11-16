@@ -66,7 +66,10 @@ test('recuperación de contraseña sin revelar cuentas', async ({ page }) => {
   await expect(notice(page)).toHaveText('Si el usuario existe, te mandamos un enlace por correo.');
 
   await page.getByLabel('Email o usuario').fill(LOGIN);
+  // Mismo aviso que antes: esperar la respuesta para no adelantarse al envío del correo.
+  const sent = page.waitForResponse((r) => r.url().endsWith('/api/auth/password-reset/request') && r.status() === 200);
   await page.getByRole('button', { name: 'Mandarme el enlace' }).click();
+  await sent;
   await expect(notice(page)).toHaveText('Si el usuario existe, te mandamos un enlace por correo.');
 
   await openLatestMailLink(page, /Recuperá tu contraseña/);

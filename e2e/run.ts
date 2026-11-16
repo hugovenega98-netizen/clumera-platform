@@ -42,6 +42,7 @@ const mgmtEnv = {
   MANAGEMENT_LICENSE_PRIVATE_KEY: mgmtKeys.privateKey,
 };
 
+run('npx', ['turbo', 'run', 'generate'], {});
 run('node', ['tooling/prepare-test-databases.mjs'], { TEST_PG_URL: PG });
 run('npm', ['run', 'seed', '-w', '@clumera/lab'], labEnv);
 if (process.env.E2E_SKIP_BUILD !== '1') {
