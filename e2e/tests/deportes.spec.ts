@@ -129,12 +129,14 @@ async function findMatch(_page: Page, opponent: string): Promise<string> {
   return execFileSync('psql', [`${PG}/${LAB_DB}`, '-Atc', sql]).toString().trim();
 }
 
-test('minuto a minuto: privado pide sesión; publicado lo ve cualquiera', async ({ page, browser }) => {
+test('minuto a minuto: privado pide sesión o código; publicado lo ve cualquiera', async ({ page, browser }) => {
   playedId = await findMatch(page, 'Atlético Sur');
   const anon = await browser.newPage();
   expect((await anon.request.get(`${LAB_URL}/api/sports/matches/${playedId}/live`)).status()).toBe(401);
   await anon.goto(`${LAB_URL}/vivo/${playedId}`);
-  await expect(anon).toHaveURL(/\/ingresar\?next=/);
+  // Sin sesión: pide un código de invitado o ingresar al club; nunca muestra el partido.
+  await expect(anon.getByRole('form', { name: 'Código de invitado' })).toBeVisible();
+  await expect(anon.getByRole('region', { name: 'Marcador' })).toHaveCount(0);
 
   await loginAs(page, 'Coach');
   expect((await post(page, `/api/sports/matches/${playedId}/public`, { mamPublic: true })).status()).toBe(200);

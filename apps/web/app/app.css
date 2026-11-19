@@ -907,3 +907,19 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Transmisión del partido: 16:9, de borde a borde en móvil. */
+.stream {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--cx-radius, 12px);
+  overflow: hidden;
+  background: #000;
+}
+.stream iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

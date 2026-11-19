@@ -45,6 +45,7 @@ test('la matriz de permisos de Lab coincide con lo esperado', async ({ page }) =
   const health = page.locator('tr[data-case="health"]');
   await expect(health.getByLabel('medico: puede')).toBeVisible();
   await expect(health.getByLabel('coach: no puede')).toBeVisible();
+  await expect(health.getByLabel('superadmin: no puede')).toBeVisible();
 });
 
 test('la tabla de permisos no ensancha la página', async ({ page }) => {
