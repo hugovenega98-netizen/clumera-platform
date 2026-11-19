@@ -1259,3 +1259,31 @@
     justify-content: center;
   }
 }
+
+/* Importar padrón: archivo y revisión a la izquierda, instrucciones al costado en escritorio. */
+.import-layout {
+  display: grid;
+  gap: var(--cx-space-4);
+}
+.import-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cx-space-2);
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-space-2);
+  min-height: var(--cx-touch);
+  font-weight: 600;
+}
+.check-row input {
+  width: 22px;
+  height: 22px;
+}
+@media (min-width: 981px) {
+  .import-layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+    align-items: start;
+  }
+}

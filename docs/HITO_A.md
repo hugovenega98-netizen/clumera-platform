@@ -86,6 +86,17 @@ Lab: Gonzalo Núñez (Primera) con seguimiento «Con restricciones» y Iván Roj
 sin evaluar; datos ficticios. Los avisos de salud son genéricos y los eventos del outbox no llevan
 datos clínicos.
 
+## Identidad — administración del padrón (entregado)
+
+| Qué | Dónde |
+| --- | --- |
+| Corregir datos de una persona; el documento solo se reemplaza (digest + últimos 4) y la auditoría guarda qué campos cambiaron, nunca los valores | `packages/identity/src/admin-people.ts`, `/admin/personas/[id]?tab=datos` |
+| Membresía: alta, cambio de estado con motivo (baja e inactiva cierran la vigencia; reactivar la reabre) y cambio de categoría | pestaña Membresía de la ficha, `PATCH /api/identity/memberships/[id]` |
+| Familias: crear grupo, sumar con rol y vínculo, quitar; un grupo con personas a cargo siempre tiene responsable | pestaña Familia, `/api/identity/families…` |
+| Importar padrón desde .xlsx o .csv: revisión por fila (alta, actualiza, sin cambios, error) y confirmación; reconoce por documento o N° de socio y frena posibles duplicados | `packages/identity/src/import.ts`, `/admin/personas/importar` |
+
+Quién: todo con `identity:person.manage` (Superadmin). Contabilidad ve el padrón pero no lo cambia; Socio, nada.
+
 ## Siguiente
 
-- Pendiente de Identidad: editar datos de la persona y cambiar el estado de la membresía desde la ficha; importar padrón desde Excel; familias desde la administración.
+- Módulos licenciables del plan, con sus roles y pantallas ya en el lienzo: reservas e instalaciones, escuelas y colonia, torneos, eventos, tienda y control de acceso en Recepción.

@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "clumera": { "layer": "service" },
+  "clumera": {
+    "layer": "service"
+  },
   "exports": {
     ".": "./src/index.ts"
   },
@@ -15,6 +17,7 @@
     "@clumera/db": "*",
     "@clumera/kernel": "*",
     "@clumera/mail": "*",
+    "fflate": "^0.8.3",
     "zod": "^4.6.7"
   }
 }
