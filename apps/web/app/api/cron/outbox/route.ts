@@ -3,6 +3,7 @@ import { purgeExpiredRateLimits } from '@clumera/identity';
 import { deliverPendingPush, vapidFromEnv } from '@clumera/notifications';
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
+import { consumers } from '@/lib/consumers';
 import { getPrisma } from '@/lib/db';
 import { errorResponse } from '@/lib/http';
 
@@ -19,12 +20,12 @@ function authorized(request: Request): boolean {
 
 /**
  * Tarea programada (Vercel Cron con CRON_SECRET): entrega eventos del outbox, push pendientes y
- * limpia el límite de solicitudes. Los consumidores de cada módulo se suman en sus hitos.
+ * limpia el límite de solicitudes. Repasa lo que la entrega inmediata no alcanzó.
  */
 export async function GET(request: Request) {
   if (!authorized(request)) return errorResponse('unauthenticated', 'No autorizado', 401);
   const db = getPrisma();
-  const outbox = await processOutbox(db, []);
+  const outbox = await processOutbox(db, consumers);
   const vapid = vapidFromEnv();
   const push = vapid ? await deliverPendingPush(db, vapid) : null;
   const purged = await purgeExpiredRateLimits(db);

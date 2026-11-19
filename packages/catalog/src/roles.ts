@@ -35,7 +35,8 @@ export const baseRoles = {
   coordinator: ['schools:manage', 'summer:manage', 'identity:person.view', 'notifications:send'],
   teacher: ['schools:attendance.mark'],
   organizer: ['tournaments:*', 'events:*', 'notifications:send'],
-  cashier: ['finance:cash.operate', 'finance:payment.record', 'store:sell'],
+  // Caja cobra: ve la cuenta de quien paga (lo que debe), nunca datos de salud.
+  cashier: ['finance:cash.operate', 'finance:payment.record', 'finance:account.view', 'store:sell'],
 } as const satisfies RoleCatalog;
 
 export type BaseRole = keyof typeof baseRoles;

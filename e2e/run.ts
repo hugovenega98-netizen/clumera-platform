@@ -6,7 +6,8 @@ import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { generateLicenseKeys, signLicense } from '@clumera/kernel';
-import { ADMIN, CORE_URL, LAB_DB, LAB_URL, LICENSED, MGMT_DB, MGMT_URL, PG } from './env';
+import { ADMIN, CORE_URL, LAB_DB, LAB_URL, LICENSED, MGMT_DB, MGMT_URL, MP_WEBHOOK_SECRET, PG } from './env';
+import { MOCK_MP_URL, startMockMercadoPago } from './mock-mp';
 
 const root = path.resolve(import.meta.dirname, '..');
 const run = (cmd: string, args: string[], env: NodeJS.ProcessEnv, cwd = root) => execFileSync(cmd, args, { cwd, env: { ...process.env, ...env }, stdio: 'inherit' });
@@ -34,6 +35,10 @@ const coreEnv = {
   CLUMERA_MAIL_DRIVER: 'dev',
   CRON_SECRET: randomBytes(24).toString('hex'),
   CLUMERA_DOC_PEPPER: randomBytes(24).toString('hex'),
+  // Mercado Pago contra el simulador local.
+  MP_ACCESS_TOKEN: 'TEST-e2e',
+  MP_WEBHOOK_SECRET,
+  MP_API_BASE: MOCK_MP_URL,
 };
 const labEnv = { ...coreEnv, CLUMERA_LAB: '1', LAB_DATABASE_NAME: LAB_DB, LAB_CORE_URL: CORE_URL };
 const mgmtEnv = {
@@ -54,6 +59,7 @@ if (process.env.E2E_SKIP_BUILD !== '1') {
   run('npx', ['turbo', 'run', 'build', '--filter=@clumera/management', '--force'], mgmtEnv);
 }
 
+const mockMp = startMockMercadoPago();
 const servers: ChildProcess[] = [];
 const start = (dir: string, port: number, env: NodeJS.ProcessEnv) => {
   // Grupo de procesos propio: al terminar se mata el grupo entero (npx → next → next-server).
@@ -82,12 +88,16 @@ let code: number;
 try {
   await Promise.all([waitFor(`${CORE_URL}/api/health`), waitFor(`${LAB_URL}/lab`), waitFor(`${MGMT_URL}/login`)]);
   try {
-    run('npx', ['playwright', 'test', ...process.argv.slice(2)], { E2E_CRON_SECRET: coreEnv.CRON_SECRET }, import.meta.dirname);
-    code = 0;
+    // Asíncrono: el simulador de Mercado Pago corre en este proceso y tiene que poder responder.
+    code = await new Promise<number>((resolve) => {
+      const pw = spawn('npx', ['playwright', 'test', ...process.argv.slice(2)], { cwd: import.meta.dirname, env: { ...process.env, E2E_CRON_SECRET: coreEnv.CRON_SECRET }, stdio: 'inherit' });
+      pw.on('exit', (c) => resolve(c === 0 ? 0 : 1));
+    });
   } catch {
     code = 1;
   }
 } finally {
   for (const s of servers) if (s.pid) process.kill(-s.pid, 'SIGKILL');
+  mockMp.close();
 }
 process.exit(code);

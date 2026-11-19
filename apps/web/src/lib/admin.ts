@@ -5,7 +5,7 @@ import { permissionChecker } from './authz';
 import { requireSession } from './session';
 
 /** Permisos que abren el espacio de administración (cada área pide además el suyo). */
-export const ADMIN_ENTRY = ['identity:person.view', 'finance:report.view'] as const;
+export const ADMIN_ENTRY = ['identity:person.view', 'finance:report.view', 'finance:payment.record'] as const;
 
 /**
  * Sesión + permiso para una pantalla de administración. Sin permiso responde 403 (forbidden.tsx):

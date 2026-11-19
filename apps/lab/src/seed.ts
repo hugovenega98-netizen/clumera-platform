@@ -1,5 +1,6 @@
 import { baseRoles, roleNames } from '@clumera/catalog';
 import type { PrismaClient } from '@clumera/db';
+import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } from '@clumera/finance';
 import { createAuthService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
 import type { Mailer } from '@clumera/mail';
 import { LAB_PROFILES } from './profiles';
@@ -19,11 +20,13 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   await syncBaseRoles(db, baseRoles, roleNames);
   const categories = Object.fromEntries(
     await Promise.all(
-      [
-        ['activo', 'Activo'],
-        ['cadete', 'Cadete'],
-        ['vitalicio', 'Vitalicio'],
-      ].map(async ([code, name]) => [code, await db.membershipCategory.upsert({ where: { code: code! }, create: { code: code!, name: name! }, update: {} })] as const),
+      (
+        [
+          ['activo', 'Activo', 22_000_00],
+          ['cadete', 'Cadete', 12_000_00],
+          ['vitalicio', 'Vitalicio', null],
+        ] as const
+      ).map(async ([code, name, monthlyFee]) => [code, await db.membershipCategory.upsert({ where: { code }, create: { code, name, monthlyFee }, update: { monthlyFee } })] as const),
     ),
   );
   const since = new Date('2024-03-01');
@@ -138,7 +141,48 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   const invited = await auth.inviteAccount({ personId: pending.id, login: 'pendiente@lab.clumera.app', email: 'pendiente@lab.clumera.app' }, null);
   if (!invited.ok) throw invited.error;
 
+  // Finanzas al final: las cuotas alcanzan a todas las membresías sembradas.
+  await seedFinance(db, padron);
+
   return { people: await db.person.count() };
+}
+
+/**
+ * Finanzas de demo: cuotas de los últimos tres meses (las anteriores pagadas, con alguna morosa),
+ * aranceles, la colonia de Tomás y cobros en caja con sus comprobantes.
+ */
+async function seedFinance(db: PrismaClient, padron: Record<string, string>): Promise<void> {
+  const admin = await db.person.findFirstOrThrow({ where: { email: 'admin@lab.clumera.app' }, select: { id: true } });
+  const ana = await db.person.findFirstOrThrow({ where: { email: 'socio@lab.clumera.app' }, select: { id: true } });
+  const tomas = await db.person.findFirstOrThrow({ where: { firstName: 'Tomás', lastName: 'Fernández' }, select: { id: true } });
+  const today = new Date();
+  const periods = [2, 1, 0].map((back) => periodOf(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - back, 15))));
+  for (const period of periods) {
+    const r = await issueMonthlyDues(db, admin.id, period, 10);
+    if (!r.ok) throw r.error;
+  }
+  // Todos pagaron las cuotas de hace dos meses y el mes pasado, salvo Lucas Benítez (moroso).
+  const late = padron['Lucas Benítez'];
+  const old = await db.charge.findMany({ where: { concept: 'cuota_social', period: { in: periods.slice(0, 2) }, status: 'pending', personId: { not: late } }, orderBy: { createdAt: 'asc' } });
+  for (const c of old) {
+    const r = await recordPayment(db, admin.id, { payerPersonId: c.personId, chargeIds: [c.id], method: c.personId === ana.id ? 'transfer' : 'cash' });
+    if (!r.ok) throw r.error;
+  }
+  const due = (days: number) => new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + days));
+  const charges = [
+    { personId: ana.id, concept: 'arancel', groupLabel: 'Hockey', description: `Arancel ${periodLabel(periods[2]!).toLowerCase()}`, amount: 18_500_00, dueDate: due(5), ref: 'arancel-ana' },
+    { personId: tomas.id, concept: 'colonia', groupLabel: 'Colonia de verano', description: 'Colonia enero · saldo', amount: 40_000_00, dueDate: due(25), ref: 'colonia-tomas' },
+    { personId: tomas.id, concept: 'arancel', groupLabel: 'Rugby M12', description: 'Fichaje temporada', amount: 35_000_00, dueDate: due(-40), ref: 'fichaje-tomas' },
+    { personId: padron['Martina Gómez']!, concept: 'arancel', groupLabel: 'Rugby XV', description: 'Arancel deportivo', amount: 18_500_00, dueDate: due(3), ref: 'arancel-martina' },
+  ];
+  for (const c of charges) {
+    const r = await issueCharge(db, admin.id, { personId: c.personId, concept: c.concept, groupLabel: c.groupLabel, description: c.description, amount: c.amount, dueDate: c.dueDate, source: 'lab', sourceRef: c.ref });
+    if (!r.ok) throw r.error;
+  }
+  // El fichaje de Tomás ya está pago.
+  const fichaje = await db.charge.findFirstOrThrow({ where: { source: 'lab', sourceRef: 'fichaje-tomas' } });
+  const r = await recordPayment(db, admin.id, { payerPersonId: ana.id, chargeIds: [fichaje.id], method: 'card' });
+  if (!r.ok) throw r.error;
 }
 
 /** Vacía la base de Lab (todas las tablas salvo el historial de migraciones). Solo tras assertLabTarget. */

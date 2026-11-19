@@ -139,7 +139,7 @@ test('contabilidad: ve el padrón y las fichas, pero no da altas ni roles', asyn
   expect((await page.goto(`${LAB_URL}/admin/personas/nueva`))!.status()).toBe(403);
 });
 
-for (const profile of ['Coach', 'Recepción', 'Socio', 'Caja'] as const) {
+for (const profile of ['Coach', 'Recepción', 'Socio'] as const) {
   test(`${profile}: sin acceso a la administración (403)`, async ({ page }) => {
     await loginAs(page, profile);
     for (const path of ['/admin', '/admin/personas']) {
@@ -152,6 +152,14 @@ for (const profile of ['Coach', 'Recepción', 'Socio', 'Caja'] as const) {
     await expect(page.getByRole('link', { name: 'Ir al inicio institucional' })).toHaveCount(0);
   });
 }
+
+test('Caja: su administración es Finanzas; el padrón, no (403)', async ({ page }) => {
+  await loginAs(page, 'Caja');
+  await page.goto(`${LAB_URL}/admin`);
+  await expect(page).toHaveURL(`${LAB_URL}/admin/finanzas`);
+  expect((await page.goto(`${LAB_URL}/admin/personas`))!.status()).toBe(403);
+  expect((await api(page).search()).status()).toBe(403);
+});
 
 test('padrón sin sesión: la API responde 401 y la pantalla pide ingresar', async ({ page }) => {
   expect((await api(page).search()).status()).toBe(401);

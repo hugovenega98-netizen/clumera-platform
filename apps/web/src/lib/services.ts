@@ -2,6 +2,7 @@ import 'server-only';
 import { publicOrigin } from '@clumera/config';
 import { getPrisma } from '@clumera/db';
 import { createAuthService, createCredentialService, DEFAULT_AUTH_SETTINGS, type AuthService, type CredentialService } from '@clumera/identity';
+import { gatewayFromEnv, type PaymentGateway } from '@clumera/finance';
 import { mailerFromEnv, type Mailer } from '@clumera/mail';
 import { clientConfig } from './client-config';
 
@@ -32,4 +33,9 @@ let credentials: CredentialService | null = null;
 export function getCredentials(): CredentialService {
   credentials ??= createCredentialService(getPrisma());
   return credentials;
+}
+
+/** Pasarela de pago del club (Mercado Pago). Null si la instalación no tiene credenciales. */
+export function getGateway(): PaymentGateway | null {
+  return gatewayFromEnv(process.env as Record<string, string | undefined>);
 }

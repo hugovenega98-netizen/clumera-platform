@@ -29,8 +29,11 @@ export const PERMISSION_CASES: PermissionCase[] = [
   // El carnet propio lo ve cualquiera con membresía activa (rol implícito de socio).
   { id: 'own-card', label: 'Ver su propio carnet', action: 'identity:card.view', resource: { scopes: [], owner: 'self' }, allowed: ['socio', 'superadmin', 'coach'] },
   { id: 'other-card', label: 'Ver el carnet de otra persona', action: 'identity:card.view', resource: { scopes: [], owner: 'other' }, allowed: ['superadmin'] },
-  { id: 'own-account', label: 'Ver sus propios pagos', action: 'finance:account.view', resource: { scopes: [], owner: 'self' }, allowed: ['socio', 'superadmin', 'coach', 'contabilidad'] },
-  { id: 'other-account', label: 'Ver la deuda de otra persona', action: 'finance:account.view', resource: { scopes: [], owner: 'other' }, allowed: ['superadmin', 'contabilidad'] },
+  { id: 'own-account', label: 'Ver sus propios pagos', action: 'finance:account.view', resource: { scopes: [], owner: 'self' }, allowed: ['socio', 'superadmin', 'coach', 'contabilidad', 'caja'] },
+  { id: 'other-account', label: 'Ver la deuda de otra persona', action: 'finance:account.view', resource: { scopes: [], owner: 'other' }, allowed: ['superadmin', 'contabilidad', 'caja'] },
+  { id: 'payment-record', label: 'Registrar cobros (caja, transferencia, posnet)', action: 'finance:payment.record', allowed: ['superadmin', 'contabilidad', 'caja'] },
+  { id: 'charge-issue', label: 'Emitir y anular cargos, cuotas del mes', action: 'finance:charge.issue', allowed: ['superadmin', 'contabilidad'] },
+  { id: 'finance-report', label: 'Ver reportes y conciliación de Finanzas', action: 'finance:report.view', allowed: ['superadmin', 'contabilidad'] },
   { id: 'health', label: 'Ver datos de salud de rugby', action: 'sports:health.view', resource: { scopes: [rugby] }, allowed: ['superadmin', 'medico'] },
   { id: 'lineup-m19', label: 'Armar la formación de Rugby M19', action: 'sports:lineup.edit', resource: { scopes: [rugby, { type: 'team', id: 'rugby-m19' }] }, allowed: ['superadmin', 'coach'] },
   { id: 'lineup-m17', label: 'Armar la formación de Rugby M17', action: 'sports:lineup.edit', resource: { scopes: [rugby, { type: 'team', id: 'rugby-m17' }] }, allowed: ['superadmin'] },

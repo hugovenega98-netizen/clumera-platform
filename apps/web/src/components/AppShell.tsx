@@ -25,16 +25,12 @@ async function memberNav(): Promise<NavLink[]> {
     .map((n) => ({ key: `${n.moduleId}:${n.id}`, href: n.href, label: n.label, icon: NAV_ICON[`${n.moduleId}:${n.id}`] ?? 'more' }));
 }
 
-// Áreas de administración declaradas en el catálogo cuya pantalla todavía no existe: se habilitan
-// cuando llega su entrega (Finanzas, en este mismo hito).
-const PENDING_ADMIN_ROUTES = new Set(['/admin/finanzas']);
-
 /** Áreas de la institución que la persona puede abrir: el menú pregunta a can() por cada una. */
 async function adminNav(personId: string): Promise<NavLink[]> {
   const { enabled } = await getLicenseState();
   const can = await permissionChecker(personId);
   return navigationFor('admin', catalog, enabled, clientConfig.modules.visible)
-    .filter((n) => !PENDING_ADMIN_ROUTES.has(n.href) && (!n.permission || can(n.permission)))
+    .filter((n) => !n.permission || can(n.permission))
     .map((n) => ({ key: `${n.moduleId}:${n.id}`, href: n.href, label: n.label, icon: NAV_ICON[`${n.moduleId}:${n.id}`] ?? 'more' }));
 }
 

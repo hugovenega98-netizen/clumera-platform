@@ -18,6 +18,7 @@
     "@clumera/catalog": "*",
     "@clumera/config": "*",
     "@clumera/db": "*",
+    "@clumera/finance": "*",
     "@clumera/identity": "*",
     "@clumera/kernel": "*",
     "@clumera/mail": "*",

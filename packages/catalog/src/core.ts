@@ -32,10 +32,10 @@ export const finance = defineModule({
   routes: ['/api/finance', '/api/webhooks/mercadopago'],
   nav: [
     { id: 'payments', label: 'Pagos', href: '/pagos', space: 'member', permission: 'finance:account.view' },
-    { id: 'accounting', label: 'Contabilidad', href: '/admin/finanzas', space: 'admin', permission: 'finance:report.view' },
+    { id: 'accounting', label: 'Finanzas', href: '/admin/finanzas', space: 'admin', permission: 'finance:payment.record' },
   ],
   homeCards: [{ id: 'balance', title: 'Mis pagos', space: 'member', permission: 'finance:account.view' }],
-  emits: ['charge.issued', 'payment.approved', 'payment.rejected', 'payment.refunded'],
+  emits: ['charge.issued', 'charge.dues_issued', 'payment.approved', 'payment.rejected', 'payment.refunded'],
   listens: [],
 });
 

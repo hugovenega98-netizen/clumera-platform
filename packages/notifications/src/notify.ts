@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@clumera/db';
+import type { Prisma, PrismaClient } from '@clumera/db';
 import { sendPush, type PushSender, type VapidConfig } from './push';
 
 export interface NotifyInput {
@@ -13,9 +13,10 @@ export interface NotifyInput {
 
 /**
  * Bandeja única: crea un aviso por persona (sin duplicados por acontecimiento) y deja la entrega
- * push pendiente para quienes tengan dispositivos suscriptos.
+ * push pendiente para quienes tengan dispositivos suscriptos. Acepta una transacción para que un
+ * consumidor del outbox cree el aviso junto con su marca de procesado.
  */
-export async function notify(db: PrismaClient, input: NotifyInput): Promise<{ created: number; notificationIds: string[] }> {
+export async function notify(db: PrismaClient | Prisma.TransactionClient, input: NotifyInput): Promise<{ created: number; notificationIds: string[] }> {
   const ids: string[] = [];
   for (const personId of new Set(input.personIds)) {
     const existing = await db.notification.findUnique({ where: { personId_eventKey: { personId, eventKey: input.eventKey } }, select: { id: true } });

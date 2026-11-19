@@ -1,7 +1,9 @@
+import { financeSummary, formatMoney } from '@clumera/finance';
 import { institutionalSummary } from '@clumera/identity';
 import { Card } from '@clumera/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { AppShell } from '@/components/AppShell';
 import { requireAdmin } from '@/lib/admin';
 import { getPrisma } from '@/lib/db';
@@ -17,7 +19,10 @@ export const dynamic = 'force-dynamic';
 export default async function AdminHome() {
   const { session, can } = await requireAdmin('/admin');
   const people = can('identity:person.view');
-  const s = people ? await institutionalSummary(getPrisma()) : null;
+  const reports = can('finance:report.view');
+  // Caja: su área es Finanzas.
+  if (!people && !reports) redirect('/admin/finanzas');
+  const [s, f] = await Promise.all([people ? institutionalSummary(getPrisma()) : null, reports ? financeSummary(getPrisma()) : null]);
   const max = Math.max(1, ...(s?.byCategory.map((c) => c.count) ?? [1]));
   const month = new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date());
 
@@ -56,6 +61,20 @@ export default async function AdminHome() {
               <b>{num.format(s.pendingAccounts)}</b>
               <span className="cx-muted">{s.lockedAccounts} bloqueadas por intentos</span>
             </div>
+            {f ? (
+              <>
+                <Link className="kpi" href="/admin/finanzas">
+                  <span className="cx-muted">Cobrado este mes</span>
+                  <b>{formatMoney(f.collectedThisMonth)}</b>
+                  <span className="cx-muted">de {formatMoney(f.issuedThisMonth)} emitidos</span>
+                </Link>
+                <Link className="kpi" href="/admin/finanzas">
+                  <span className="cx-muted">Morosidad (+21 días)</span>
+                  <b>{f.activeMembers ? `${((f.lateMembers / f.activeMembers) * 100).toLocaleString('es-AR', { maximumFractionDigits: 1 })}%` : '—'}</b>
+                  <span className="cx-muted">{f.lateMembers === 1 ? '1 socio' : `${num.format(f.lateMembers)} socios`} · cuota social</span>
+                </Link>
+              </>
+            ) : null}
             <Link className="kpi" href="/admin/personas?filtro=staff">
               <span className="cx-muted">Con roles en el club</span>
               <b>{num.format(s.staff)}</b>
@@ -93,6 +112,15 @@ export default async function AdminHome() {
                     Ver
                   </Link>
                 </div>
+                {f && f.onlineInVerification ? (
+                  <div>
+                    <span className="cx-tag cx-tag--bad">Pagos</span>
+                    <span>{f.onlineInVerification === 1 ? '1 pago de Mercado Pago en verificación' : `${f.onlineInVerification} pagos de Mercado Pago en verificación`}</span>
+                    <Link className="cx-link" href="/admin/finanzas">
+                      Revisar
+                    </Link>
+                  </div>
+                ) : null}
                 {s.suspended ? (
                   <div>
                     <span className="cx-tag cx-tag--bad">Membresías</span>
