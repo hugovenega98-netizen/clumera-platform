@@ -2,6 +2,7 @@ import { baseRoles, roleNames } from '@clumera/catalog';
 import type { PrismaClient } from '@clumera/db';
 import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } from '@clumera/finance';
 import { createAuthService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
+import { createMatch, createSport, createTeam, setLineup, setTeamMember, teamFeeRows } from '@clumera/sports';
 import type { Mailer } from '@clumera/mail';
 import { LAB_PROFILES } from './profiles';
 
@@ -141,7 +142,8 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   const invited = await auth.inviteAccount({ personId: pending.id, login: 'pendiente@lab.clumera.app', email: 'pendiente@lab.clumera.app' }, null);
   if (!invited.ok) throw invited.error;
 
-  // Finanzas al final: las cuotas alcanzan a todas las membresías sembradas.
+  // Deportes y Finanzas al final: cuotas y aranceles alcanzan a todo lo sembrado.
+  await seedSports(db, padron);
   await seedFinance(db, padron);
 
   return { people: await db.person.count() };
@@ -170,19 +172,114 @@ async function seedFinance(db: PrismaClient, padron: Record<string, string>): Pr
   }
   const due = (days: number) => new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + days));
   const charges = [
-    { personId: ana.id, concept: 'arancel', groupLabel: 'Hockey', description: `Arancel ${periodLabel(periods[2]!).toLowerCase()}`, amount: 18_500_00, dueDate: due(5), ref: 'arancel-ana' },
     { personId: tomas.id, concept: 'colonia', groupLabel: 'Colonia de verano', description: 'Colonia enero · saldo', amount: 40_000_00, dueDate: due(25), ref: 'colonia-tomas' },
     { personId: tomas.id, concept: 'arancel', groupLabel: 'Rugby M12', description: 'Fichaje temporada', amount: 35_000_00, dueDate: due(-40), ref: 'fichaje-tomas' },
-    { personId: padron['Martina Gómez']!, concept: 'arancel', groupLabel: 'Rugby XV', description: 'Arancel deportivo', amount: 18_500_00, dueDate: due(3), ref: 'arancel-martina' },
   ];
   for (const c of charges) {
     const r = await issueCharge(db, admin.id, { personId: c.personId, concept: c.concept, groupLabel: c.groupLabel, description: c.description, amount: c.amount, dueDate: c.dueDate, source: 'lab', sourceRef: c.ref });
+    if (!r.ok) throw r.error;
+  }
+  // Aranceles del mes por equipo (como los emite Deportes): separados por deporte y equipo.
+  const period = periods[2]!;
+  const [py, pm] = period.split('-').map(Number) as [number, number];
+  for (const row of await teamFeeRows(db, period)) {
+    const r = await issueCharge(db, admin.id, {
+      personId: row.personId,
+      concept: 'arancel',
+      groupLabel: row.groupLabel,
+      description: `Arancel ${periodLabel(period).toLowerCase()}`,
+      period,
+      amount: row.amount,
+      dueDate: new Date(Date.UTC(py, pm - 1, 25)),
+      source: 'sports',
+      sourceRef: row.sourceRef,
+    });
     if (!r.ok) throw r.error;
   }
   // El fichaje de Tomás ya está pago.
   const fichaje = await db.charge.findFirstOrThrow({ where: { source: 'lab', sourceRef: 'fichaje-tomas' } });
   const r = await recordPayment(db, admin.id, { payerPersonId: ana.id, chargeIds: [fichaje.id], method: 'card' });
   if (!r.ok) throw r.error;
+}
+
+/**
+ * Deportes de demo: Rugby (tres equipos), Hockey y Vóley. Ana juega dos deportes y es responsable de
+ * Tomás (M12); Martín dirige M19 y juega en el plantel superior. M19 tiene un partido jugado con
+ * incidencias y uno próximo con la convocatoria abierta; el plantel superior juega hoy (mesa).
+ */
+async function seedSports(db: PrismaClient, padron: Record<string, string>): Promise<void> {
+  const admin = await db.person.findFirstOrThrow({ where: { email: 'admin@lab.clumera.app' }, select: { id: true } });
+  const byEmail = async (email: string) => (await db.person.findFirstOrThrow({ where: { email }, select: { id: true } })).id;
+  const ana = await byEmail('socio@lab.clumera.app');
+  const martin = await byEmail('coach@lab.clumera.app');
+  const tomas = (await db.person.findFirstOrThrow({ where: { firstName: 'Tomás', lastName: 'Fernández' }, select: { id: true } })).id;
+  const ok = <T>(r: { ok: true; value: T } | { ok: false; error: Error }): T => {
+    if (!r.ok) throw r.error;
+    return r.value;
+  };
+  const sport = async (code: string, slug: string, name: string) => ok(await createSport(db, { code, slug, name })).id;
+  const rugby = await sport('rugby_xv', 'rugby', 'Rugby');
+  const hockey = await sport('hockey', 'hockey', 'Hockey');
+  const voley = await sport('volleyball', 'voley', 'Vóley');
+  const team = async (sportId: string, name: string, slug: string, fee: number) => ok(await createTeam(db, { sportId, name, slug, monthlyFee: fee })).id;
+  const primera = await team(rugby, 'Plantel superior', 'rugby-primera', 20_000_00);
+  const m19 = await team(rugby, 'M19', 'rugby-m19', 18_000_00);
+  const m12 = await team(rugby, 'M12', 'rugby-m12', 15_000_00);
+  const damas = await team(hockey, 'Damas', 'hockey-damas', 18_500_00);
+  const mixto = await team(voley, 'Mixto', 'voley-mixto', 12_000_00);
+
+  const juveniles: string[] = [];
+  for (const [firstName, lastName, birth] of [
+    ['Iván', 'Rojas', '2009-04-02'],
+    ['Santino', 'Paz', '2009-08-19'],
+    ['Felipe', 'Luna', '2010-01-30'],
+  ] as const)
+    juveniles.push((await db.person.create({ data: { firstName, lastName, birthDate: new Date(birth) } })).id);
+
+  const members: Array<[string, string[]]> = [
+    [primera, [martin, padron['Lucas Benítez']!, padron['Gonzalo Núñez']!]],
+    [m19, [padron['Bruno Ferrari']!, ...juveniles]],
+    [m12, [tomas, padron['Joaquín Gómez']!]],
+    [damas, [ana, padron['Martina Gómez']!, padron['Valentina Rossi']!]],
+    [mixto, [ana, padron['Camila Torres']!]],
+  ];
+  for (const [teamId, people] of members) for (const p of people) ok(await setTeamMember(db, teamId, p, true));
+
+  const today = new Date();
+  const dayAt = (offsetDays: number, hourUtc: number) => new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + offsetDays, hourUtc));
+  const nextSaturday = (6 - today.getUTCDay() + 7) % 7 || 7;
+
+  // M19: jugado la semana pasada, con incidencias y marcador.
+  const played = ok(await createMatch(db, martin, { teamId: m19, opponent: 'Atlético Sur', startsAt: dayAt(nextSaturday - 7, 14), home: true, venue: 'Cancha 1' })).id;
+  await db.matchCallup.updateMany({ where: { matchId: played }, data: { response: 'going', respondedAt: dayAt(nextSaturday - 9, 12) } });
+  ok(await setLineup(db, played, [padron['Bruno Ferrari']!, ...juveniles]));
+  const ev = (type: string, side: 'own' | 'opponent', minute: number, personId?: string) => ({ matchId: played, type, side, minute, personId: personId ?? null, createdById: admin.id, createdAt: new Date(dayAt(nextSaturday - 7, 14).getTime() + minute * 60_000) });
+  await db.matchEvent.createMany({
+    data: [
+      ev('try', 'own', 8, padron['Bruno Ferrari']),
+      ev('conversion', 'own', 9, juveniles[0]),
+      ev('penalty_goal', 'opponent', 15),
+      ev('try', 'opponent', 31),
+      ev('conversion', 'opponent', 32),
+      ev('try', 'own', 47, juveniles[1]),
+      ev('penalty_goal', 'own', 58, juveniles[0]),
+      ev('yellow_card', 'own', 61, juveniles[2]),
+      ev('try', 'own', 72, padron['Bruno Ferrari']),
+      ev('conversion', 'own', 73, juveniles[0]),
+      ev('try', 'opponent', 79),
+    ],
+  });
+  await db.match.update({ where: { id: played }, data: { status: 'played', scoreFor: 24, scoreAgainst: 15 } });
+
+  // Próximos: convocatorias abiertas.
+  const next19 = ok(await createMatch(db, martin, { teamId: m19, opponent: 'Club Norte', startsAt: dayAt(nextSaturday, 14), home: false, venue: 'Club Norte' })).id;
+  await db.matchCallup.updateMany({ where: { matchId: next19, personId: { in: [padron['Bruno Ferrari']!, juveniles[0]!] } }, data: { response: 'going', respondedAt: new Date() } });
+  ok(await createMatch(db, martin, { teamId: m12, opponent: 'Club Norte', startsAt: dayAt(nextSaturday, 13), home: true, venue: 'Cancha 2' }));
+  ok(await createMatch(db, martin, { teamId: damas, opponent: 'Lomas', startsAt: dayAt(nextSaturday + 1, 15), home: true, venue: 'Sintética' }));
+  // Plantel superior: hoy, para probar la Mesa de control.
+  const todayMatch = ok(await createMatch(db, admin.id, { teamId: primera, opponent: 'San Martín', startsAt: dayAt(0, 18), home: true, venue: 'Cancha 1' })).id;
+  await db.matchCallup.updateMany({ where: { matchId: todayMatch }, data: { response: 'going', respondedAt: new Date() } });
+  ok(await setLineup(db, todayMatch, [martin, padron['Lucas Benítez']!, padron['Gonzalo Núñez']!]));
 }
 
 /** Vacía la base de Lab (todas las tablas salvo el historial de migraciones). Solo tras assertLabTarget. */

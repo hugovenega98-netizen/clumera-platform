@@ -83,5 +83,6 @@ export const NAV_ICON: Record<string, string> = {
   'tournaments:tournaments': 'trophy',
   'store:store': 'store',
   'identity:people': 'people',
+  'sports:sports-admin': 'sports',
   'finance:accounting': 'chart',
 };

@@ -1,0 +1,988 @@
+[
+  {
+    "code": "rugby_xv",
+    "label": "Rugby XV",
+    "family": "rugby",
+    "fieldSize": 15,
+    "periodCount": 2,
+    "periodMinutes": 40,
+    "positions": [
+      {
+        "id": "front_row",
+        "label": "1.ª línea"
+      },
+      {
+        "id": "second_row",
+        "label": "2.ª línea"
+      },
+      {
+        "id": "back_row",
+        "label": "3.ª línea"
+      },
+      {
+        "id": "scrum_half",
+        "label": "Medio scrum"
+      },
+      {
+        "id": "fly_half",
+        "label": "Apertura"
+      },
+      {
+        "id": "inside_centre",
+        "label": "Primer centro"
+      },
+      {
+        "id": "outside_centre",
+        "label": "Segundo centro"
+      },
+      {
+        "id": "wing",
+        "label": "Wing"
+      },
+      {
+        "id": "fullback",
+        "label": "Fullback"
+      }
+    ],
+    "events": [
+      {
+        "id": "try",
+        "label": "Try",
+        "points": 5
+      },
+      {
+        "id": "penalty_try",
+        "label": "Try penal",
+        "points": 7
+      },
+      {
+        "id": "conversion",
+        "label": "Conversión",
+        "points": 2
+      },
+      {
+        "id": "penalty_goal",
+        "label": "Penal a los palos",
+        "points": 3
+      },
+      {
+        "id": "drop_goal",
+        "label": "Drop",
+        "points": 3
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "rugby_seven",
+    "label": "Rugby Seven",
+    "family": "rugby",
+    "fieldSize": 7,
+    "periodCount": 2,
+    "periodMinutes": 7,
+    "positions": [
+      {
+        "id": "prop",
+        "label": "Pilar"
+      },
+      {
+        "id": "hooker",
+        "label": "Hooker"
+      },
+      {
+        "id": "scrum_half",
+        "label": "Medio scrum"
+      },
+      {
+        "id": "fly_half",
+        "label": "Apertura"
+      },
+      {
+        "id": "centre",
+        "label": "Centro"
+      },
+      {
+        "id": "wing",
+        "label": "Wing"
+      },
+      {
+        "id": "fullback",
+        "label": "Fullback"
+      }
+    ],
+    "events": [
+      {
+        "id": "try",
+        "label": "Try",
+        "points": 5
+      },
+      {
+        "id": "penalty_try",
+        "label": "Try penal",
+        "points": 7
+      },
+      {
+        "id": "conversion",
+        "label": "Conversión",
+        "points": 2
+      },
+      {
+        "id": "penalty_goal",
+        "label": "Penal a los palos",
+        "points": 3
+      },
+      {
+        "id": "drop_goal",
+        "label": "Drop",
+        "points": 3
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "football_11",
+    "label": "Fútbol 11",
+    "family": "football",
+    "fieldSize": 11,
+    "periodCount": 2,
+    "periodMinutes": 45,
+    "positions": [
+      {
+        "id": "goalkeeper",
+        "label": "Arquero/a"
+      },
+      {
+        "id": "centre_back",
+        "label": "Defensor/a central"
+      },
+      {
+        "id": "full_back",
+        "label": "Lateral"
+      },
+      {
+        "id": "defensive_midfielder",
+        "label": "Mediocentro defensivo"
+      },
+      {
+        "id": "central_midfielder",
+        "label": "Volante central"
+      },
+      {
+        "id": "attacking_midfielder",
+        "label": "Enganche"
+      },
+      {
+        "id": "winger",
+        "label": "Extremo/a"
+      },
+      {
+        "id": "striker",
+        "label": "Delantero/a"
+      }
+    ],
+    "events": [
+      {
+        "id": "goal",
+        "label": "Gol",
+        "points": 1
+      },
+      {
+        "id": "free_kick",
+        "label": "Tiro libre",
+        "points": 0
+      },
+      {
+        "id": "penalty_awarded",
+        "label": "Penal concedido",
+        "points": 0
+      },
+      {
+        "id": "penalty_scored",
+        "label": "Penal convertido",
+        "points": 1
+      },
+      {
+        "id": "penalty_missed",
+        "label": "Penal fallado",
+        "points": 0
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "football_9",
+    "label": "Fútbol 9",
+    "family": "football",
+    "fieldSize": 9,
+    "periodCount": 2,
+    "periodMinutes": 30,
+    "positions": [
+      {
+        "id": "goalkeeper",
+        "label": "Arquero/a"
+      },
+      {
+        "id": "centre_back",
+        "label": "Defensor/a central"
+      },
+      {
+        "id": "full_back",
+        "label": "Lateral"
+      },
+      {
+        "id": "defensive_midfielder",
+        "label": "Mediocentro defensivo"
+      },
+      {
+        "id": "central_midfielder",
+        "label": "Volante central"
+      },
+      {
+        "id": "attacking_midfielder",
+        "label": "Enganche"
+      },
+      {
+        "id": "winger",
+        "label": "Extremo/a"
+      },
+      {
+        "id": "striker",
+        "label": "Delantero/a"
+      }
+    ],
+    "events": [
+      {
+        "id": "goal",
+        "label": "Gol",
+        "points": 1
+      },
+      {
+        "id": "free_kick",
+        "label": "Tiro libre",
+        "points": 0
+      },
+      {
+        "id": "penalty_awarded",
+        "label": "Penal concedido",
+        "points": 0
+      },
+      {
+        "id": "penalty_scored",
+        "label": "Penal convertido",
+        "points": 1
+      },
+      {
+        "id": "penalty_missed",
+        "label": "Penal fallado",
+        "points": 0
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "football_7",
+    "label": "Fútbol 7",
+    "family": "football",
+    "fieldSize": 7,
+    "periodCount": 2,
+    "periodMinutes": 25,
+    "positions": [
+      {
+        "id": "goalkeeper",
+        "label": "Arquero/a"
+      },
+      {
+        "id": "centre_back",
+        "label": "Defensor/a central"
+      },
+      {
+        "id": "full_back",
+        "label": "Lateral"
+      },
+      {
+        "id": "defensive_midfielder",
+        "label": "Mediocentro defensivo"
+      },
+      {
+        "id": "central_midfielder",
+        "label": "Volante central"
+      },
+      {
+        "id": "attacking_midfielder",
+        "label": "Enganche"
+      },
+      {
+        "id": "winger",
+        "label": "Extremo/a"
+      },
+      {
+        "id": "striker",
+        "label": "Delantero/a"
+      }
+    ],
+    "events": [
+      {
+        "id": "goal",
+        "label": "Gol",
+        "points": 1
+      },
+      {
+        "id": "free_kick",
+        "label": "Tiro libre",
+        "points": 0
+      },
+      {
+        "id": "penalty_awarded",
+        "label": "Penal concedido",
+        "points": 0
+      },
+      {
+        "id": "penalty_scored",
+        "label": "Penal convertido",
+        "points": 1
+      },
+      {
+        "id": "penalty_missed",
+        "label": "Penal fallado",
+        "points": 0
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "football_5",
+    "label": "Fútbol 5",
+    "family": "football",
+    "fieldSize": 5,
+    "periodCount": 2,
+    "periodMinutes": 20,
+    "positions": [
+      {
+        "id": "goalkeeper",
+        "label": "Arquero/a"
+      },
+      {
+        "id": "centre_back",
+        "label": "Defensor/a central"
+      },
+      {
+        "id": "full_back",
+        "label": "Lateral"
+      },
+      {
+        "id": "defensive_midfielder",
+        "label": "Mediocentro defensivo"
+      },
+      {
+        "id": "central_midfielder",
+        "label": "Volante central"
+      },
+      {
+        "id": "attacking_midfielder",
+        "label": "Enganche"
+      },
+      {
+        "id": "winger",
+        "label": "Extremo/a"
+      },
+      {
+        "id": "striker",
+        "label": "Delantero/a"
+      }
+    ],
+    "events": [
+      {
+        "id": "goal",
+        "label": "Gol",
+        "points": 1
+      },
+      {
+        "id": "free_kick",
+        "label": "Tiro libre",
+        "points": 0
+      },
+      {
+        "id": "penalty_awarded",
+        "label": "Penal concedido",
+        "points": 0
+      },
+      {
+        "id": "penalty_scored",
+        "label": "Penal convertido",
+        "points": 1
+      },
+      {
+        "id": "penalty_missed",
+        "label": "Penal fallado",
+        "points": 0
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "futsal",
+    "label": "Futsal",
+    "family": "football",
+    "fieldSize": 5,
+    "periodCount": 2,
+    "periodMinutes": 20,
+    "positions": [
+      {
+        "id": "goalkeeper",
+        "label": "Arquero/a"
+      },
+      {
+        "id": "centre_back",
+        "label": "Defensor/a central"
+      },
+      {
+        "id": "full_back",
+        "label": "Lateral"
+      },
+      {
+        "id": "defensive_midfielder",
+        "label": "Mediocentro defensivo"
+      },
+      {
+        "id": "central_midfielder",
+        "label": "Volante central"
+      },
+      {
+        "id": "attacking_midfielder",
+        "label": "Enganche"
+      },
+      {
+        "id": "winger",
+        "label": "Extremo/a"
+      },
+      {
+        "id": "striker",
+        "label": "Delantero/a"
+      }
+    ],
+    "events": [
+      {
+        "id": "goal",
+        "label": "Gol",
+        "points": 1
+      },
+      {
+        "id": "free_kick",
+        "label": "Tiro libre",
+        "points": 0
+      },
+      {
+        "id": "penalty_awarded",
+        "label": "Penal concedido",
+        "points": 0
+      },
+      {
+        "id": "penalty_scored",
+        "label": "Penal convertido",
+        "points": 1
+      },
+      {
+        "id": "penalty_missed",
+        "label": "Penal fallado",
+        "points": 0
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "volleyball",
+    "label": "Vóley",
+    "family": "volleyball",
+    "fieldSize": 6,
+    "periodCount": 5,
+    "periodMinutes": null,
+    "positions": [
+      {
+        "id": "setter",
+        "label": "Armador/a"
+      },
+      {
+        "id": "opposite",
+        "label": "Opuesto/a"
+      },
+      {
+        "id": "outside_hitter",
+        "label": "Punta receptor/a"
+      },
+      {
+        "id": "middle_blocker",
+        "label": "Central"
+      },
+      {
+        "id": "libero",
+        "label": "Líbero"
+      },
+      {
+        "id": "defensive_specialist",
+        "label": "Defensa"
+      }
+    ],
+    "events": [
+      {
+        "id": "volley_point",
+        "label": "Punto",
+        "points": 1
+      },
+      {
+        "id": "volley_attack",
+        "label": "Ataque",
+        "points": 1
+      },
+      {
+        "id": "volley_block",
+        "label": "Bloqueo",
+        "points": 1
+      },
+      {
+        "id": "volley_ace",
+        "label": "Saque directo",
+        "points": 1
+      },
+      {
+        "id": "volley_error",
+        "label": "Error rival",
+        "points": 1
+      },
+      {
+        "id": "volley_timeout",
+        "label": "Tiempo muerto",
+        "points": 0
+      },
+      {
+        "id": "volley_substitution",
+        "label": "Cambio",
+        "points": 0
+      },
+      {
+        "id": "volley_rotation",
+        "label": "Rotación",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "hockey",
+    "label": "Hockey",
+    "family": "hockey",
+    "fieldSize": 11,
+    "periodCount": 4,
+    "periodMinutes": 15,
+    "positions": [
+      {
+        "id": "goalkeeper",
+        "label": "Arquero/a"
+      },
+      {
+        "id": "defender",
+        "label": "Defensor/a"
+      },
+      {
+        "id": "midfielder",
+        "label": "Mediocampista"
+      },
+      {
+        "id": "winger",
+        "label": "Extremo/a"
+      },
+      {
+        "id": "forward",
+        "label": "Delantero/a"
+      }
+    ],
+    "events": [
+      {
+        "id": "goal",
+        "label": "Gol",
+        "points": 1
+      },
+      {
+        "id": "penalty_corner",
+        "label": "Córner corto",
+        "points": 0
+      },
+      {
+        "id": "penalty_stroke",
+        "label": "Penal convertido",
+        "points": 1
+      },
+      {
+        "id": "green_card",
+        "label": "Tarjeta verde",
+        "points": 0
+      },
+      {
+        "id": "yellow_card",
+        "label": "Tarjeta amarilla",
+        "points": 0
+      },
+      {
+        "id": "red_card",
+        "label": "Tarjeta roja",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "basketball",
+    "label": "Básquet",
+    "family": "basketball",
+    "fieldSize": 5,
+    "periodCount": 4,
+    "periodMinutes": 10,
+    "positions": [
+      {
+        "id": "point_guard",
+        "label": "Base"
+      },
+      {
+        "id": "shooting_guard",
+        "label": "Escolta"
+      },
+      {
+        "id": "small_forward",
+        "label": "Alero/a"
+      },
+      {
+        "id": "power_forward",
+        "label": "Ala-pívot"
+      },
+      {
+        "id": "center",
+        "label": "Pívot"
+      }
+    ],
+    "events": [
+      {
+        "id": "field_goal_2",
+        "label": "Doble",
+        "points": 2
+      },
+      {
+        "id": "field_goal_3",
+        "label": "Triple",
+        "points": 3
+      },
+      {
+        "id": "free_throw_made",
+        "label": "Tiro libre convertido",
+        "points": 1
+      },
+      {
+        "id": "free_throw_missed",
+        "label": "Tiro libre fallado",
+        "points": 0
+      },
+      {
+        "id": "personal_foul",
+        "label": "Falta personal",
+        "points": 0
+      },
+      {
+        "id": "technical_foul",
+        "label": "Falta técnica",
+        "points": 0
+      },
+      {
+        "id": "timeout",
+        "label": "Tiempo muerto",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Posible lesión",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "handball",
+    "label": "Handball",
+    "family": "handball",
+    "fieldSize": 7,
+    "periodCount": 2,
+    "periodMinutes": 30,
+    "positions": [
+      {
+        "id": "handball_goalkeeper",
+        "label": "Arquero/a"
+      },
+      {
+        "id": "handball_left_wing",
+        "label": "Extremo izquierdo"
+      },
+      {
+        "id": "handball_left_back",
+        "label": "Lateral izquierdo"
+      },
+      {
+        "id": "handball_centre_back",
+        "label": "Central"
+      },
+      {
+        "id": "handball_right_back",
+        "label": "Lateral derecho"
+      },
+      {
+        "id": "handball_right_wing",
+        "label": "Extremo derecho"
+      },
+      {
+        "id": "handball_pivot",
+        "label": "Pivote"
+      }
+    ],
+    "events": [
+      {
+        "id": "handball_goal",
+        "label": "Gol",
+        "points": 1
+      },
+      {
+        "id": "handball_7m_goal",
+        "label": "Gol de 7 metros",
+        "points": 1
+      },
+      {
+        "id": "handball_7m_missed",
+        "label": "7 metros fallado",
+        "points": 0
+      },
+      {
+        "id": "handball_free_throw",
+        "label": "Tiro libre",
+        "points": 0
+      },
+      {
+        "id": "handball_yellow_card",
+        "label": "Amonestación",
+        "points": 0
+      },
+      {
+        "id": "handball_two_minute",
+        "label": "Exclusión de 2 minutos",
+        "points": 0
+      },
+      {
+        "id": "handball_red_card",
+        "label": "Descalificación",
+        "points": 0
+      },
+      {
+        "id": "handball_timeout",
+        "label": "Tiempo muerto",
+        "points": 0
+      },
+      {
+        "id": "injury_incident",
+        "label": "Incidencia de juego",
+        "points": 0
+      }
+    ]
+  },
+  {
+    "code": "softball",
+    "label": "Softball",
+    "family": "softball",
+    "fieldSize": 9,
+    "periodCount": 7,
+    "periodMinutes": null,
+    "positions": [
+      {
+        "id": "softball_pitcher",
+        "label": "Lanzador/a"
+      },
+      {
+        "id": "softball_catcher",
+        "label": "Receptor/a"
+      },
+      {
+        "id": "softball_first_base",
+        "label": "Primera base"
+      },
+      {
+        "id": "softball_second_base",
+        "label": "Segunda base"
+      },
+      {
+        "id": "softball_third_base",
+        "label": "Tercera base"
+      },
+      {
+        "id": "softball_shortstop",
+        "label": "Campocorto"
+      },
+      {
+        "id": "softball_left_field",
+        "label": "Jardín izquierdo"
+      },
+      {
+        "id": "softball_centre_field",
+        "label": "Jardín central"
+      },
+      {
+        "id": "softball_right_field",
+        "label": "Jardín derecho"
+      }
+    ],
+    "events": [
+      {
+        "id": "softball_run",
+        "label": "Carrera",
+        "points": 1
+      },
+      {
+        "id": "softball_single",
+        "label": "Hit sencillo",
+        "points": 0
+      },
+      {
+        "id": "softball_double",
+        "label": "Doble",
+        "points": 0
+      },
+      {
+        "id": "softball_triple",
+        "label": "Triple",
+        "points": 0
+      },
+      {
+        "id": "softball_home_run",
+        "label": "Jonrón (carrera del bateador)",
+        "points": 1
+      },
+      {
+        "id": "softball_out",
+        "label": "Out",
+        "points": 0
+      },
+      {
+        "id": "softball_strikeout",
+        "label": "Ponche (out)",
+        "points": 0
+      },
+      {
+        "id": "softball_walk",
+        "label": "Base por bolas",
+        "points": 0
+      },
+      {
+        "id": "softball_stolen_base",
+        "label": "Base robada",
+        "points": 0
+      },
+      {
+        "id": "softball_error",
+        "label": "Error defensivo",
+        "points": 0
+      }
+    ]
+  }
+]

@@ -60,13 +60,14 @@ export const sports = defineModule({
   kind: 'core',
   dependsOn: ['identity'],
   permissions: ['sports:view', 'sports:lineup.edit', 'sports:attendance.mark', 'sports:match.control', 'sports:health.view', 'sports:manage'],
-  routes: ['/api/sports', '/deportes'],
+  routes: ['/api/sports', '/deportes', '/vivo'],
   nav: [
     { id: 'my-sports', label: 'Mis deportes', href: '/deportes', space: 'sports', permission: 'sports:view' },
     { id: 'desk', label: 'Mesa de control', href: '/deportes/mesa', space: 'operations', permission: 'sports:match.control' },
+    { id: 'sports-admin', label: 'Deportes', href: '/admin/deportes', space: 'admin', permission: 'sports:manage' },
   ],
   homeCards: [{ id: 'next-match', title: 'Próximo partido', space: 'sports', permission: 'sports:view' }],
-  emits: ['match.started', 'match.finished'],
+  emits: ['match.scheduled', 'match.started', 'match.finished'],
   listens: [],
 });
 

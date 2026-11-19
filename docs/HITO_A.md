@@ -52,7 +52,26 @@ prueba el circuito completo contra un simulador local de la API.
 Pendiente de Finanzas: devoluciones y contracargos (hoy quedan «para revisar»), cajas con apertura y
 cierre, débito automático, prueba con el sandbox real de Mercado Pago.
 
+## Deportes A (entregado)
+
+| Qué | Dónde |
+| --- | --- |
+| Catálogo de 12 deportes y lógica portada del core anterior sin cambios (reloj por tiempos o cuartos, sets de vóley, entradas de softball, puntos, disponibilidad), con sus pruebas | `packages/sports/src/logic.ts` |
+| Deportes, equipos (ámbito para roles y arancel), planteles, partidos, convocatorias, incidencias, reloj y ausencias | `packages/sports`, migración `hito_a_deportes` |
+| Mis deportes: planteles propios y de la familia a cargo, convocatoria (Voy / No puedo), partidos, ausencias, rendimiento | `/deportes`, `/deportes/equipos/[id]` |
+| Coach: plantel con disponibilidad, programar partido (convoca al plantel), formación, publicar minuto a minuto, cerrar como jugado o suspender | `/deportes/equipos/[id]?vista=plantel`, `/deportes/partidos/[id]` |
+| Mesa de control: reloj, incidencias por equipo y jugador de la formación, deshacer, final (el coach confirma) | `/deportes/mesa`, `/deportes/mesa/[id]` |
+| Minuto a minuto: privado para el club o público si el coach lo publica; se actualiza solo | `/vivo/[id]` |
+| Administración: deportes, equipos con arancel, planteles; aranceles del mes a Finanzas, separados por deporte y equipo | `/admin/deportes` |
+
+Criterio del hito: Ana (Lab) juega Hockey y Vóley y es responsable de Tomás (Rugby M12): una cuenta,
+sus convocatorias y las de Tomás, y en Pagos cada cargo separado (cuota, Hockey · Damas, Vóley ·
+Mixto, Tomás · Rugby · M12). Martín es coach de M19 y juega en el plantel superior.
+
+Quién: la mesa opera solo los deportes de su ámbito; el coach, sus equipos; administración de
+deportes, Superadmin. Recepción y Socio: sin mesa ni administración (403).
+
 ## Siguiente
 
-- Deportes, adaptado de clumera-cmp.
+- Deportes B: salud (lesiones, seguimiento médico, disponibilidad sin diagnóstico para el coach), streaming, pases de invitado al minuto a minuto, avisos push por incidencia, jugadores temporales y cambios.
 - Pendiente de Identidad: editar datos de la persona y cambiar el estado de la membresía desde la ficha; importar padrón desde Excel; familias desde la administración.
