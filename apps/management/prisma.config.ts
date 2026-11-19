@@ -4,5 +4,6 @@ import { defineConfig } from 'prisma/config';
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: { path: 'prisma/migrations' },
-  datasource: { url: process.env.MANAGEMENT_DATABASE_URL ?? 'postgresql://placeholder:placeholder@localhost:5432/placeholder' },
+  // Migraciones por conexión directa si existe (ver packages/db/prisma.config.ts).
+  datasource: { url: process.env.MANAGEMENT_DATABASE_URL_UNPOOLED || process.env.MANAGEMENT_DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' },
 });
