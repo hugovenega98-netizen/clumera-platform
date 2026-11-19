@@ -5,12 +5,15 @@
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
-import { hashPassword } from '@clumera/identity';
 import { generateLicenseKeys, signLicense } from '@clumera/kernel';
 import { ADMIN, CORE_URL, LAB_DB, LAB_URL, LICENSED, MGMT_DB, MGMT_URL, PG } from './env';
 
 const root = path.resolve(import.meta.dirname, '..');
 const run = (cmd: string, args: string[], env: NodeJS.ProcessEnv, cwd = root) => execFileSync(cmd, args, { cwd, env: { ...process.env, ...env }, stdio: 'inherit' });
+
+// Primero los clientes Prisma: @clumera/identity los carga al importarse (en CI no existen todavía).
+run('npx', ['turbo', 'run', 'generate'], {});
+const { hashPassword } = await import('@clumera/identity');
 
 const keys = await generateLicenseKeys();
 const now = new Date();
@@ -30,6 +33,7 @@ const coreEnv = {
   CLUMERA_PUBLIC_ORIGIN: LAB_URL,
   CLUMERA_MAIL_DRIVER: 'dev',
   CRON_SECRET: randomBytes(24).toString('hex'),
+  CLUMERA_DOC_PEPPER: randomBytes(24).toString('hex'),
 };
 const labEnv = { ...coreEnv, CLUMERA_LAB: '1', LAB_DATABASE_NAME: LAB_DB, LAB_CORE_URL: CORE_URL };
 const mgmtEnv = {
@@ -42,7 +46,6 @@ const mgmtEnv = {
   MANAGEMENT_LICENSE_PRIVATE_KEY: mgmtKeys.privateKey,
 };
 
-run('npx', ['turbo', 'run', 'generate'], {});
 run('node', ['tooling/prepare-test-databases.mjs'], { TEST_PG_URL: PG });
 run('npm', ['run', 'seed', '-w', '@clumera/lab'], labEnv);
 if (process.env.E2E_SKIP_BUILD !== '1') {

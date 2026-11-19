@@ -28,6 +28,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // forbidden() en pantallas sin permiso: 403 real, no solo esconder.
+  experimental: { authInterrupts: true },
   turbopack: { root: path.join(here, '../..') },
   transpilePackages: ['@clumera/kernel', '@clumera/config', '@clumera/catalog', '@clumera/notifications', '@clumera/ui'],
   // Sin secretos: client.config.json los rechaza al validar.

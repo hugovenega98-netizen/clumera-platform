@@ -7,6 +7,8 @@ import { clientConfig } from '@/lib/client-config';
 import { getPrisma } from '@/lib/db';
 import { getLicenseState } from '@/lib/license';
 import { navigationFor } from '@/lib/navigation';
+import { ADMIN_ENTRY } from '@/lib/admin';
+import { permissionChecker } from '@/lib/authz';
 import { requireSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -17,6 +19,8 @@ export default async function HomePage() {
   const session = await requireSession('/');
   const { enabled } = await getLicenseState();
   const items = navigationFor('member', catalog, enabled, clientConfig.modules.visible);
+  const can = await permissionChecker(session.personId);
+  const admin = ADMIN_ENTRY.some((p) => can(p));
   const recent = await getPrisma().notification.findMany({ where: { personId: session.personId }, orderBy: { createdAt: 'desc' }, take: 3 });
   return (
     <AppShell session={session} current="/" title="Inicio">
@@ -24,6 +28,14 @@ export default async function HomePage() {
         <h1>Hola, {session.firstName}</h1>
         <p>{clientConfig.identity.tagline}</p>
       </header>
+      {admin ? (
+        <Card title="Administración del club">
+          <p className="cx-muted">Tenés acceso a las áreas de la institución.</p>
+          <Link className="cx-btn cx-btn--secondary" href="/admin">
+            Ir al inicio institucional
+          </Link>
+        </Card>
+      ) : null}
       <div className="cx-columns">
         <Card title="Tu club">
           <nav aria-label="Secciones del club">

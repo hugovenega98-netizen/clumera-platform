@@ -2,6 +2,7 @@ import '@fontsource/barlow/400.css';
 import '@fontsource/barlow/600.css';
 import '@fontsource/barlow-semi-condensed/600.css';
 import '@clumera/ui/styles.css';
+import './app.css';
 import { clientCssText } from '@clumera/config';
 import { INSTALL_CAPTURE_SCRIPT } from '@clumera/ui';
 import { SerwistProvider } from '@serwist/turbopack/react';
