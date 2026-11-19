@@ -72,6 +72,7 @@
     "MANAGEMENT_*",
     "MP_ACCESS_TOKEN",
     "MP_WEBHOOK_SECRET",
-    "MP_API_BASE"
+    "MP_API_BASE",
+    "MP_TEST_PAYER_EMAIL"
   ]
 }

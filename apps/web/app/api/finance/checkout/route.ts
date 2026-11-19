@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     const { checkoutUrl, preferenceId } = await gateway.createCheckout({
       paymentId: started.value.id,
       items: started.value.charges.map((c) => ({ id: c.id, title: c.description, amount: c.amount })),
-      payerEmail: payer?.email,
+      // Con credenciales de prueba, el comprador tiene que ser de prueba (un email real hace fallar el checkout).
+      payerEmail: process.env.MP_TEST_PAYER_EMAIL?.trim() || payer?.email,
       backUrl: `${origin}/pagos?pago=${started.value.id}`,
       notificationUrl: `${origin}/api/webhooks/mercadopago`,
     });

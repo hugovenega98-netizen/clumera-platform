@@ -46,7 +46,7 @@ y paga lo suyo y lo de su familia a cargo; Recepción, Coach, Médico: 403.
 
 Para habilitar Mercado Pago en una instalación: `MP_ACCESS_TOKEN` y `MP_WEBHOOK_SECRET` (de la
 aplicación en el panel de Mercado Pago) y la URL de notificaciones
-`https://<dominio>/api/webhooks/mercadopago`. Sin esas variables, el pago online no aparece. En e2e se
+`https://<dominio>/api/webhooks/mercadopago` (evento **Pagos**). Sin esas variables, el pago online no aparece. En Lab, además, `MP_TEST_PAYER_EMAIL` con un comprador de prueba: con credenciales de prueba, un email real hace fallar el checkout. En e2e se
 prueba el circuito completo contra un simulador local de la API.
 
 Pendiente de Finanzas: devoluciones y contracargos (hoy quedan «para revisar»), cajas con apertura y
