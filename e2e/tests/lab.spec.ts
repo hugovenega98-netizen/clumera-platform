@@ -11,7 +11,7 @@ test('el selector de perfiles abre una sesión real del core', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Hola, Martín' })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
-  await page.getByRole('link', { name: 'Martín' }).click();
+  await page.getByRole('link', { name: 'Martín', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Mi cuenta' })).toBeVisible();
   await expect(page.getByText('coach@lab.clumera.app')).toBeVisible();
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();
@@ -24,7 +24,7 @@ test('la navegación muestra solo lo licenciado y visible', async ({ page }) => 
   await loginAs(page, 'Socio');
   const nav = page.getByRole('navigation', { name: 'Secciones del club' });
   await expect(nav.getByRole('link', { name: 'Reservar' })).toBeVisible();
-  await expect(nav.getByRole('link', { name: 'Carnet' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Mis deportes' })).toBeVisible();
   // Tienda está visible en la config de Lab pero sin licencia en e2e.
   await expect(nav.getByRole('link', { name: 'Tienda' })).toHaveCount(0);
 });

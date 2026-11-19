@@ -42,7 +42,8 @@ const REASONS = {
   firma: 'El código no es válido.',
 } as const;
 
-function membershipActive(m: { status: string; validFrom: Date; validTo: Date | null } | undefined, at: Date) {
+/** Membresía vigente: activa y dentro de sus fechas. */
+export function membershipActive(m: { status: string; validFrom: Date; validTo: Date | null } | undefined, at: Date) {
   return Boolean(m && m.status === 'active' && m.validFrom <= at && (!m.validTo || m.validTo >= at));
 }
 
