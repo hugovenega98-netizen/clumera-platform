@@ -25,6 +25,18 @@ function detect(): Mode {
   return ios ? 'ios' : 'manual';
 }
 
+function waitForPrompt(ms: number): Promise<InstallPromptEvent | null> {
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      window.removeEventListener('clumera:installable', done);
+      resolve(window.__clumeraInstall ?? null);
+    };
+    const timer = setTimeout(done, ms);
+    window.addEventListener('clumera:installable', done);
+  });
+}
+
 export interface InstallAppProps {
   /** Nombre de la app tal como queda bajo el ícono. */
   appName: string;
@@ -42,15 +54,19 @@ export interface InstallAppProps {
 export function InstallApp({ appName, serviceWorkerUrl, variant = 'primary', className }: InstallAppProps) {
   const [mode, setMode] = useState<Mode>('hidden');
   const [help, setHelp] = useState(false);
+  const [waiting, setWaiting] = useState(false);
 
   useEffect(() => {
-    // Registro diferido: solo si nadie lo registró todavía y con la página ya cargada, para no
-    // competir con la navegación en curso.
-    let idle: ReturnType<typeof setTimeout> | undefined;
-    if (serviceWorkerUrl && 'serviceWorker' in navigator) {
-      idle = setTimeout(async () => {
-        if (!(await navigator.serviceWorker.getRegistration('/'))) await navigator.serviceWorker.register(serviceWorkerUrl, { scope: '/' }).catch(() => undefined);
-      }, 1500);
+    // Registro con la página ya cargada (no compite con la navegación) y solo si falta: Chrome
+    // ofrece instalar recién cuando hay service worker. Mismas opciones que el core (Serwist usa
+    // workers de módulo): si difieren, el navegador lo reinstala en medio de una navegación.
+    const registerWorker = async () => {
+      if (!(await navigator.serviceWorker.getRegistration('/'))) await navigator.serviceWorker.register(serviceWorkerUrl!, { scope: '/', type: 'module' }).catch(() => undefined);
+    };
+    const wantsWorker = Boolean(serviceWorkerUrl) && 'serviceWorker' in navigator;
+    if (wantsWorker) {
+      if (document.readyState === 'complete') void registerWorker();
+      else window.addEventListener('load', registerWorker, { once: true });
     }
     const update = () => setMode(detect());
     const installed = () => setMode('hidden');
@@ -58,7 +74,7 @@ export function InstallApp({ appName, serviceWorkerUrl, variant = 'primary', cla
     window.addEventListener('clumera:installable', update);
     window.addEventListener('appinstalled', installed);
     return () => {
-      clearTimeout(idle);
+      if (wantsWorker) window.removeEventListener('load', registerWorker);
       window.removeEventListener('clumera:installable', update);
       window.removeEventListener('appinstalled', installed);
     };
@@ -67,8 +83,16 @@ export function InstallApp({ appName, serviceWorkerUrl, variant = 'primary', cla
   if (mode === 'hidden') return null;
 
   async function install() {
-    const prompt = window.__clumeraInstall;
-    if (!prompt) return setHelp((h) => !h);
+    if (help) return setHelp(false);
+    // Chrome puede tardar unos segundos en ofrecer la instalación (registra el service worker
+    // primero): se espera al aviso nativo antes de mostrar los pasos.
+    let prompt = window.__clumeraInstall ?? null;
+    if (!prompt && mode !== 'ios') {
+      setWaiting(true);
+      prompt = await waitForPrompt(3000);
+      setWaiting(false);
+    }
+    if (!prompt) return setHelp(true);
     window.__clumeraInstall = null;
     await prompt.prompt();
     const { outcome } = await prompt.userChoice;
@@ -77,8 +101,8 @@ export function InstallApp({ appName, serviceWorkerUrl, variant = 'primary', cla
 
   return (
     <div className={className} data-install-mode={mode}>
-      <Button variant={variant} onClick={install} aria-expanded={mode === 'prompt' ? undefined : help}>
-        Instalar app
+      <Button variant={variant} onClick={install} disabled={waiting} aria-expanded={mode === 'prompt' ? undefined : help}>
+        {waiting ? 'Preparando…' : 'Instalar app'}
       </Button>
       {help ? (
         <div className="cx-install-help" role="region" aria-label="Cómo instalar la app">

@@ -1,18 +1,16 @@
 'use client';
 
 import { Button } from '@clumera/ui';
-import { useRouter } from 'next/navigation';
 import { postJson } from './forms';
 
 export function LogoutButton() {
-  const router = useRouter();
   return (
     <Button
       variant="secondary"
       onClick={async () => {
         await postJson('/api/auth/logout', {});
-        router.replace('/ingresar');
-        router.refresh();
+        // Recarga completa: no queda nada de la sesión anterior en la memoria del navegador.
+        window.location.assign('/ingresar');
       }}
     >
       Cerrar sesión

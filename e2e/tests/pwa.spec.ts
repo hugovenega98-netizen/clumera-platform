@@ -82,3 +82,20 @@ test('abierta desde el ícono (modo app) no muestra el botón', async ({ page })
   await expect(page.getByRole('heading', { name: 'Clumera Lab', level: 1 })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Instalar app' })).toHaveCount(0);
 });
+
+test('si el aviso de Chrome llega después del toque, instala igual y no cancela el acceso propio de Chrome', async ({ page }) => {
+  await page.goto(`${LAB_URL}/lab`);
+  const install = page.getByRole('button', { name: 'Instalar app' });
+  await install.click();
+  await expect(page.getByRole('button', { name: 'Preparando…' })).toBeVisible();
+  const prevented = await page.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true }) as Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
+    e.prompt = async () => void ((window as unknown as { __prompted: boolean }).__prompted = true);
+    e.userChoice = Promise.resolve({ outcome: 'accepted' });
+    window.dispatchEvent(e);
+    return e.defaultPrevented;
+  });
+  expect(prevented).toBe(false);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __prompted?: boolean }).__prompted)).toBe(true);
+  await expect(page.getByRole('region', { name: 'Cómo instalar la app' })).toHaveCount(0);
+});
