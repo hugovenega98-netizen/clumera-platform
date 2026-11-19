@@ -1201,3 +1201,61 @@
     flex-direction: column;
   }
 }
+
+/* ───────── Barra superior (lienzo): móvil con club + pantalla; escritorio con avatar ───────── */
+.cx-topbar__titles {
+  display: grid;
+  min-width: 0;
+  line-height: 1.15;
+}
+.cx-topbar__kicker {
+  font-family: var(--cx-font-cond);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cx-on-primary-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cx-topbar__title {
+  font-family: var(--cx-font-cond);
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cx-shell__top .cx-topbar__brand img {
+  width: 36px;
+  height: 36px;
+}
+.cx-topbar__me {
+  display: none;
+}
+@media (min-width: 981px) {
+  .cx-topbar__mobile {
+    display: none;
+  }
+  .cx-topbar__me {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cx-space-2);
+    min-height: var(--cx-touch);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .cx-topbar__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--cx-button);
+    color: #fff;
+    font-family: var(--cx-font-cond);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

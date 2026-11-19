@@ -10,8 +10,18 @@ test('el selector de perfiles abre una sesión real del core', async ({ page }) 
   await loginAs(page, 'Coach');
   await expect(page.getByRole('heading', { name: 'Hola, Martín' })).toBeVisible();
   await expectNoHorizontalScroll(page);
+  if ((page.viewportSize()?.width ?? 0) < 981) {
+    // Encabezado móvil del lienzo: club + pantalla, cambiar de espacio y avisos.
+    await expect(page.getByRole('link', { name: 'Clumera Lab · Mi club' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Cambiar de espacio' })).toBeVisible();
+  }
 
-  await page.getByRole('link', { name: 'Martín', exact: true }).click();
+  // Escritorio: avatar y nombre arriba. Teléfono (lienzo): la cuenta está en «Más».
+  if ((page.viewportSize()?.width ?? 0) >= 981) await page.getByRole('link', { name: 'Martín', exact: true }).click();
+  else {
+    await page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('link', { name: 'Más' }).click();
+    await page.getByRole('link', { name: 'Mi cuenta' }).click();
+  }
   await expect(page.getByRole('heading', { name: 'Mi cuenta' })).toBeVisible();
   await expect(page.getByText('coach@lab.clumera.app')).toBeVisible();
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();

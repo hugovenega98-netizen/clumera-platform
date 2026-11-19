@@ -90,7 +90,7 @@ export default async function HomePage() {
   );
 
   return (
-    <AppShell session={session} current="/" title="Inicio">
+    <AppShell session={session} current="/" title="Mi club">
       <h1>Hola, {session.firstName}</h1>
       <div className="home">
         <div className="home__main">
