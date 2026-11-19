@@ -165,6 +165,7 @@ export interface PersonProfile {
     id: string;
     number: string | null;
     category: string;
+    categoryCode: string;
     status: 'active' | 'suspended' | 'inactive' | 'resigned';
     validFrom: Date;
     validTo: Date | null;
@@ -198,7 +199,7 @@ export async function personProfile(db: PrismaClient, personId: string, at = new
           status: true,
           validFrom: true,
           validTo: true,
-          category: { select: { name: true } },
+          category: { select: { name: true, code: true } },
           history: { orderBy: { changedAt: 'desc' }, take: 10, select: { fromStatus: true, toStatus: true, reason: true, changedAt: true } },
         },
       },
@@ -227,6 +228,7 @@ export async function personProfile(db: PrismaClient, personId: string, at = new
       id: m.id,
       number: m.memberNumber,
       category: m.category.name,
+      categoryCode: m.category.code,
       status: m.status,
       validFrom: m.validFrom,
       validTo: m.validTo,

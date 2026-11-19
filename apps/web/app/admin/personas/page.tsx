@@ -41,9 +41,14 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
       <div className="adm-bar">
         <h1>Padrón de personas</h1>
         {can('identity:person.manage') ? (
-          <Link className="cx-btn cx-btn--primary" href="/admin/personas/nueva">
-            Alta de persona
-          </Link>
+          <div className="adm-actions">
+            <Link className="cx-btn cx-btn--secondary" href="/admin/personas/importar">
+              Importar desde Excel
+            </Link>
+            <Link className="cx-btn cx-btn--primary" href="/admin/personas/nueva">
+              Alta de persona
+            </Link>
+          </div>
         ) : null}
       </div>
       <Card>
