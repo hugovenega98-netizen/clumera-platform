@@ -1,0 +1,22 @@
+{
+  "name": "@clumera/finance",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "clumera": {
+    "layer": "service"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./money": "./src/money.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@clumera/db": "*",
+    "@clumera/kernel": "*",
+    "zod": "^4.6.7"
+  }
+}

@@ -553,3 +553,195 @@
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 }
+
+/* ───────── Finanzas ───────── */
+.pay-group {
+  gap: 0;
+}
+.pay-item {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-space-3);
+  min-height: 56px;
+  padding: var(--cx-space-2) 0;
+  border-top: 1px solid var(--cx-line);
+  cursor: pointer;
+}
+.pay-item input {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--cx-button);
+  margin: 0;
+  flex: none;
+}
+.pay-item .grow {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.pay-item__title {
+  font-weight: 600;
+}
+.pay-item__amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* En el teléfono el botón de pago queda pegado sobre el dock. */
+.pay-bar {
+  position: sticky;
+  bottom: calc(var(--cx-dock-h, 76px) + var(--cx-space-2));
+  display: grid;
+  gap: var(--cx-space-2);
+  padding: var(--cx-space-3);
+  background: var(--cx-surface);
+  border: 1px solid var(--cx-line);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgb(8 36 71 / 0.12);
+  text-align: center;
+  font-size: var(--cx-fs-small);
+}
+@media (min-width: 981px) {
+  .pay-bar {
+    bottom: var(--cx-space-4);
+    max-width: 520px;
+    justify-self: end;
+    margin-left: auto;
+  }
+}
+.money {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.ledger th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cx-text-2);
+  padding: var(--cx-space-2);
+  border-bottom: 1px solid var(--cx-line);
+}
+.ledger td {
+  padding: var(--cx-space-2);
+  border-bottom: 1px solid var(--cx-line);
+  vertical-align: middle;
+}
+.ledger tr.grp td {
+  background: var(--cx-bg);
+  font-family: var(--cx-font-cond);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 13px;
+  color: var(--cx-text-2);
+}
+.ledger input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--cx-button);
+}
+@media (max-width: 720px) {
+  .ledger thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .ledger,
+  .ledger tbody {
+    display: block;
+  }
+  .ledger tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px var(--cx-space-2);
+    padding: var(--cx-space-2) 0;
+    border-bottom: 1px solid var(--cx-line);
+  }
+  .ledger tr.grp {
+    padding: 0;
+    border: 0;
+  }
+  .ledger tr.grp td {
+    flex: 1;
+  }
+  .ledger td {
+    display: block;
+    border: 0;
+    padding: 0;
+  }
+  .ledger td.desc {
+    flex: 1 1 60%;
+  }
+  .ledger td.hide-sm {
+    display: none;
+  }
+}
+.receipt {
+  max-width: 720px;
+}
+.receipt__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--cx-space-3);
+}
+.receipt__head h1 {
+  margin: 0;
+}
+.receipt__lines {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.receipt__lines th,
+.receipt__lines td {
+  text-align: left;
+  padding: var(--cx-space-2) 0;
+  border-bottom: 1px solid var(--cx-line);
+}
+.receipt__lines .num {
+  text-align: right;
+}
+@media print {
+  .cx-shell__side,
+  .cx-shell__top,
+  .cx-dock,
+  .no-print {
+    display: none !important;
+  }
+  .receipt {
+    border: 0;
+    box-shadow: none;
+  }
+}
+.cx-link-button {
+  background: none;
+  border: 0;
+  padding: 0 4px;
+  min-height: 32px;
+  color: var(--cx-bad);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.record-form {
+  position: sticky;
+  bottom: calc(var(--cx-dock-h, 76px) + var(--cx-space-2));
+  box-shadow: 0 6px 20px rgb(8 36 71 / 0.12);
+}
+@media (min-width: 981px) {
+  .record-form {
+    bottom: var(--cx-space-4);
+  }
+}

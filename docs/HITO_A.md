@@ -27,10 +27,32 @@ cada permiso nuevo, con su caso en la matriz de Lab y su recorrido por rol en e2
 Quién: Superadmin todo; Contabilidad y Coordinador ven padrón y fichas (sin altas ni roles); el
 resto, 403. La ficha nunca muestra datos clínicos ni la cuenta corriente.
 
-Diseño: lienzo, páginas «3 · Administración (escritorio)» y «6 · Administración (móvil)».
+Diseño: lienzo, páginas «3 · Administración (escritorio)» y «6 · Administración (móvil)»; el comprobante, en las páginas del socio.
+
+## Finanzas (entregado)
+
+| Qué | Dónde |
+| --- | --- |
+| Libro: cargos (idempotentes por `source` + `sourceRef`), cobros, imputaciones con filas bloqueadas, bitácora de pagos; montos en centavos con CHECK en la base | `packages/finance`, migración `hito_a_finanzas` |
+| Cuotas sociales del mes por categoría (`monthlyFee`), idempotentes | `POST /api/finance/dues` |
+| Cuenta unificada del socio (lo suyo y lo de sus representados), pago online por concepto, historial y comprobantes imprimibles | `/pagos`, `/pagos/comprobante/[id]` |
+| Buscador central: cuenta por persona, registrar cobro (efectivo, transferencia, posnet; parcial), emitir y anular cargos | `/admin/finanzas`, `/admin/finanzas/cuentas/[id]` |
+| Números del mes, morosidad (+21 días), cobrado por medio, conciliación de Mercado Pago | `/admin/finanzas`, inicio institucional |
+| Mercado Pago (Checkout Pro): preferencia con `external_reference` e idempotencia; webhook con firma `x-signature` obligatoria, estado y monto leídos de la API; duplicados y montos distintos quedan en la bitácora; el regreso del navegador nunca confirma | `packages/finance/src/gateway.ts`, `/api/webhooks/mercadopago` |
+| Aviso «Pago acreditado» por el outbox (entrega inmediata y repaso del cron) | `apps/web/src/lib/consumers.ts` |
+
+Quién: Contabilidad todo; Caja busca, ve la cuenta y cobra (sin emitir ni ver reportes); el socio ve
+y paga lo suyo y lo de su familia a cargo; Recepción, Coach, Médico: 403.
+
+Para habilitar Mercado Pago en una instalación: `MP_ACCESS_TOKEN` y `MP_WEBHOOK_SECRET` (de la
+aplicación en el panel de Mercado Pago) y la URL de notificaciones
+`https://<dominio>/api/webhooks/mercadopago`. Sin esas variables, el pago online no aparece. En e2e se
+prueba el circuito completo contra un simulador local de la API.
+
+Pendiente de Finanzas: devoluciones y contracargos (hoy quedan «para revisar»), cajas con apertura y
+cierre, débito automático, prueba con el sandbox real de Mercado Pago.
 
 ## Siguiente
 
-- Finanzas: cuenta unificada, cargos, Mercado Pago (necesita credenciales de prueba), conciliación; suma cobrado y morosidad al inicio institucional y habilita `/admin/finanzas`.
 - Deportes, adaptado de clumera-cmp.
 - Pendiente de Identidad: editar datos de la persona y cambiar el estado de la membresía desde la ficha; importar padrón desde Excel; familias desde la administración.

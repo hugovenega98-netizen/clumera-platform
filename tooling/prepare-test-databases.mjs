@@ -14,7 +14,7 @@ if (!['localhost', '127.0.0.1', 'postgres'].includes(host) && process.env.ALLOW_
   process.exit(1);
 }
 // Management tiene su propia base y sus propias migraciones.
-const names = ['db', 'identity', 'notifications', 'web', 'lab', 'management'];
+const names = ['db', 'identity', 'notifications', 'finance', 'web', 'lab', 'management'];
 const root = path.resolve(import.meta.dirname, '..');
 const psql = (sql) => execFileSync('psql', [`${base}/postgres`, '-qc', sql], { stdio: 'inherit' });
 for (const name of names) {

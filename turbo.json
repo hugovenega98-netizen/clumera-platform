@@ -69,6 +69,9 @@
     "MAIL_FROM",
     "CRON_SECRET",
     "CLUMERA_DOC_PEPPER",
-    "MANAGEMENT_*"
+    "MANAGEMENT_*",
+    "MP_ACCESS_TOKEN",
+    "MP_WEBHOOK_SECRET",
+    "MP_API_BASE"
   ]
 }

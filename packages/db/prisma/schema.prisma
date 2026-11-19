@@ -36,6 +36,8 @@ model Person {
   pickupsAsAuthorized PickupAuthorization[] @relation("PickupAuthorized")
   notifications       Notification[]
   credentials         Credential[]
+  charges             Charge[]
+  paymentsMade        Payment[]            @relation("PaymentPayer")
 
   @@index([lastName, firstName])
   @@index([email])
@@ -111,6 +113,8 @@ model MembershipCategory {
   code        String           @unique
   name        String
   active      Boolean          @default(true)
+  /// Cuota social mensual en centavos. Nula: la categoría no paga cuota (vitalicio, honorario).
+  monthlyFee  Int?
   memberships ClubMembership[]
 }
 
@@ -400,4 +404,108 @@ model Credential {
   createdAt     DateTime         @default(now())
 
   @@index([personId, kind, status])
+}
+
+// ───────────── Finanzas ─────────────
+// Montos en centavos (enteros). Una sola cuenta por persona; la vista del socio suma a sus representados.
+
+enum ChargeStatus {
+  pending
+  paid
+  cancelled
+}
+
+/// Lo que se debe: cuota, arancel, reserva, colonia… Cada módulo emite los suyos con `source` + `sourceRef`.
+model Charge {
+  id              String             @id @default(cuid())
+  personId        String
+  person          Person             @relation(fields: [personId], references: [id], onDelete: Restrict)
+  /// cuota_social, arancel, reserva, colonia, evento, tienda, otro
+  concept         String
+  /// Agrupador visible en la cuenta: «Membresía social», «Rugby XV», «Servicios».
+  groupLabel      String
+  description     String
+  /// AAAA-MM cuando corresponde a un período.
+  period          String?
+  amount          Int
+  paidAmount      Int                @default(0)
+  dueDate         DateTime           @db.Date
+  status          ChargeStatus       @default(pending)
+  /// Módulo que lo originó y su referencia: emitir dos veces lo mismo no duplica.
+  source          String
+  sourceRef       String
+  issuedById      String?
+  cancelledReason String?
+  createdAt       DateTime           @default(now())
+  allocations     PaymentAllocation[]
+
+  @@unique([source, sourceRef])
+  @@index([personId, status])
+  @@index([status, dueDate])
+}
+
+enum PaymentMethod {
+  cash
+  transfer
+  card
+  mercadopago
+}
+
+enum PaymentStatus {
+  pending
+  approved
+  rejected
+  refunded
+}
+
+/// Un cobro. Los presenciales nacen aprobados; los de la pasarela, pendientes hasta el webhook.
+model Payment {
+  id            String              @id @default(cuid())
+  /// N° de comprobante (R-000123).
+  number        Int                 @unique @default(autoincrement())
+  payerPersonId String?
+  payer         Person?             @relation("PaymentPayer", fields: [payerPersonId], references: [id], onDelete: SetNull)
+  amount        Int
+  method        PaymentMethod
+  status        PaymentStatus       @default(pending)
+  provider      String?
+  /// Id del pago en la pasarela.
+  providerRef   String?
+  /// Cargos que este pago quiere cancelar (pagos online: se imputan recién al aprobarse).
+  intent        String[]
+  note          String?
+  recordedById  String?
+  receivedAt    DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  allocations   PaymentAllocation[]
+  events        PaymentEvent[]
+
+  @@unique([provider, providerRef])
+  @@index([payerPersonId, createdAt])
+  @@index([status, receivedAt])
+}
+
+model PaymentAllocation {
+  id        String  @id @default(cuid())
+  paymentId String
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  chargeId  String
+  charge    Charge  @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+  amount    Int
+
+  @@unique([paymentId, chargeId])
+  @@index([chargeId])
+}
+
+/// Bitácora de un pago: retorno de la pasarela, webhooks (también los duplicados), consultas.
+model PaymentEvent {
+  id        String   @id @default(cuid())
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  kind      String
+  detail    Json?
+  at        DateTime @default(now())
+
+  @@index([paymentId, at])
 }

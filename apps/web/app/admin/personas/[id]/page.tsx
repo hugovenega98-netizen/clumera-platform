@@ -86,6 +86,11 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
           </div>
         </div>
         {status ? <span className={`cx-tag ${status.tone}`}>{status.label}</span> : <span className="cx-tag">No socio</span>}
+        {can('finance:account.view') ? (
+          <Link className="cx-btn cx-btn--secondary" href={`/admin/finanzas/cuentas/${id}`}>
+            Ver cuenta
+          </Link>
+        ) : null}
       </header>
       <nav className="profile-tabs" aria-label="Ficha">
         {TABS.map((t) => (
@@ -321,7 +326,7 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
       ) : null}
 
       <p className="cx-muted" style={{ fontSize: 'var(--cx-fs-small)' }}>
-        La información clínica y la cuenta corriente no se muestran en esta ficha: tienen permisos propios.
+        La información clínica no se muestra en esta ficha, y la cuenta corriente está en Finanzas: cada una tiene su permiso.
       </p>
     </AppShell>
   );

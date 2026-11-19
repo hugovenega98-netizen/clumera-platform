@@ -27,7 +27,7 @@ const ROLE_SPACE: Record<string, { label: string; home: string }> = {
   coordinator: { label: 'Coordinación', home: '/admin' },
   teacher: { label: 'Profesor', home: '/' },
   organizer: { label: 'Torneos y eventos', home: '/' },
-  cashier: { label: 'Caja', home: '/' },
+  cashier: { label: 'Caja', home: '/admin/finanzas' },
 };
 
 const SCOPE_WORD: Record<string, string> = { club: 'Todo el club', sport: 'Deporte', team: 'Equipo', venue: 'Espacio', resource: 'Recurso', event: 'Evento', activity: 'Actividad' };

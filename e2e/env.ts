@@ -13,3 +13,7 @@ export const LAB_DB = 'clumera_test_lab';
 export const MGMT_DB = 'clumera_test_management';
 export const LICENSED = ['facilities', 'bookings', 'access', 'schools', 'summer', 'tournaments', 'events'];
 export const ADMIN = { email: 'e2e@clumera.app', password: 'frase larga de prueba e2e' };
+
+/** Firma de los webhooks simulados de Mercado Pago (solo e2e). */
+export const MP_WEBHOOK_SECRET = 'e2e-webhook-secret';
+export const MOCK_MP = 'http://localhost:3500';
