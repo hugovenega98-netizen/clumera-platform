@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
   // forbidden() en pantallas sin permiso: 403 real, no solo esconder.
   experimental: { authInterrupts: true },
   turbopack: { root: path.join(here, '../..') },
-  transpilePackages: ['@clumera/kernel', '@clumera/config', '@clumera/catalog', '@clumera/notifications', '@clumera/finance', '@clumera/ui'],
+  transpilePackages: ['@clumera/kernel', '@clumera/config', '@clumera/catalog', '@clumera/notifications', '@clumera/finance', '@clumera/sports', '@clumera/ui'],
   // Sin secretos: client.config.json los rechaza al validar.
   env: { CLUMERA_CLIENT_CONFIG_JSON: JSON.stringify(clientConfig) },
   async headers() {

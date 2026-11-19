@@ -38,6 +38,8 @@ export const PERMISSION_CASES: PermissionCase[] = [
   { id: 'lineup-m19', label: 'Armar la formación de Rugby M19', action: 'sports:lineup.edit', resource: { scopes: [rugby, { type: 'team', id: 'rugby-m19' }] }, allowed: ['superadmin', 'coach'] },
   { id: 'lineup-m17', label: 'Armar la formación de Rugby M17', action: 'sports:lineup.edit', resource: { scopes: [rugby, { type: 'team', id: 'rugby-m17' }] }, allowed: ['superadmin'] },
   { id: 'match-control', label: 'Operar la mesa de control de rugby', action: 'sports:match.control', resource: { scopes: [rugby] }, allowed: ['superadmin', 'mesa'] },
+  { id: 'match-control-hockey', label: 'Operar la mesa de control de hockey', action: 'sports:match.control', resource: { scopes: [{ type: 'sport', id: 'hockey' }, { type: 'team', id: 'hockey-damas' }] }, allowed: ['superadmin'] },
+  { id: 'sports-manage', label: 'Administrar deportes, equipos y planteles', action: 'sports:manage', allowed: ['superadmin'] },
   { id: 'access', label: 'Validar accesos en la entrada', action: 'access:validate', allowed: ['superadmin', 'recepcion'] },
   { id: 'venues', label: 'Administrar instalaciones', action: 'facilities:venue.manage', allowed: ['superadmin', 'instalaciones'] },
   { id: 'attendance', label: 'Tomar asistencia en natación', action: 'schools:attendance.mark', resource: { scopes: [{ type: 'activity', id: 'natacion' }] }, allowed: ['superadmin', 'profesor'] },

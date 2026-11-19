@@ -18,10 +18,10 @@ export interface Space {
 
 const ROLE_SPACE: Record<string, { label: string; home: string }> = {
   superadmin: { label: 'Administración', home: '/admin' },
-  coach: { label: 'Panel Coach', home: '/' },
+  coach: { label: 'Panel Coach', home: '/deportes' },
   medical: { label: 'Salud', home: '/' },
   accounting: { label: 'Contabilidad', home: '/admin' },
-  desk: { label: 'Mesa de control', home: '/' },
+  desk: { label: 'Mesa de control', home: '/deportes/mesa' },
   reception: { label: 'Recepción', home: '/' },
   facility_manager: { label: 'Instalaciones', home: '/' },
   coordinator: { label: 'Coordinación', home: '/admin' },

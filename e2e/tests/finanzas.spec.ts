@@ -29,9 +29,10 @@ test('socia: cuenta unificada con lo suyo y lo de su hijo', async ({ page }) => 
   await page.goto(`${LAB_URL}/pagos`);
   const summary = page.getByRole('region', { name: 'Resumen de la cuenta' });
   await expect(summary.getByText('Pendiente del grupo')).toBeVisible();
-  await expect(summary.getByText('$ 92.500')).toBeVisible(); // 22.000 + 18.500 + 12.000 + 40.000
+  // Cuota 22.000 + hockey 18.500 + vóley 12.000 + Tomás: cuota 12.000, colonia 40.000, M12 15.000.
+  await expect(summary.getByText('$ 119.500')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Tomás · Colonia de verano' }).getByText('$ 40.000')).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Hockey' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Hockey · Damas' })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
   await page.getByRole('navigation', { name: 'Vista de pagos' }).getByRole('link', { name: /Historial/ }).click();
@@ -74,7 +75,7 @@ test('caja: busca la cuenta, cobra en efectivo y emite el comprobante', async ({
   await expect(page.getByRole('heading', { name: 'Ana Fernández', level: 1 })).toBeVisible();
   await expect(page.getByRole('form', { name: 'Emitir cargo' })).toHaveCount(0);
 
-  await page.getByRole('checkbox', { name: /Cobrar Arancel/ }).check();
+  await page.getByRole('checkbox', { name: /Cobrar Arancel/ }).first().check();
   const form = page.getByRole('form', { name: 'Registrar cobro' });
   await expect(form.getByRole('heading')).toHaveText('Registrar cobro · $ 18.500');
   await form.getByLabel('Medio').selectOption('cash');

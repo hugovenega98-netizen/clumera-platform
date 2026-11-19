@@ -88,8 +88,9 @@ test('espacios: una cuenta, un espacio por participación', async ({ page }) => 
   await expect(spaces.getByRole('radio')).toHaveCount(2);
   await expect(spaces.getByRole('radio', { name: /Mi club/ })).toHaveAttribute('aria-checked', 'true');
   await spaces.getByRole('radio', { name: /Coach/ }).click();
-  await expect(spaces.getByRole('radio', { name: /Coach/ })).toHaveAttribute('aria-checked', 'true');
-  await page.reload();
+  // Cada espacio abre en su inicio: el del coach es Mis deportes.
+  await expect(page).toHaveURL(`${LAB_URL}/deportes`);
+  await page.goto(`${LAB_URL}/espacios`);
   await expect(spaces.getByRole('radio', { name: /Coach/ })).toHaveAttribute('aria-checked', 'true');
   const bad = await page.request.post(`${LAB_URL}/api/auth/context`, { headers: { origin: LAB_URL }, data: { key: 'superadmin:club:' } });
   expect(bad.status()).toBe(403);

@@ -23,6 +23,7 @@
     "@clumera/kernel": "*",
     "@clumera/mail": "*",
     "@clumera/notifications": "*",
+    "@clumera/sports": "*",
     "@clumera/ui": "*",
     "@fontsource/barlow": "^5.3.0",
     "@fontsource/barlow-semi-condensed": "^5.2.7",

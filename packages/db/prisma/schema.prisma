@@ -37,6 +37,9 @@ model Person {
   notifications       Notification[]
   credentials         Credential[]
   charges             Charge[]
+  teamMemberships     TeamMember[]
+  matchCallups        MatchCallup[]
+  absences            Absence[]
   paymentsMade        Payment[]            @relation("PaymentPayer")
 
   @@index([lastName, firstName])
@@ -508,4 +511,159 @@ model PaymentEvent {
   at        DateTime @default(now())
 
   @@index([paymentId, at])
+}
+
+// ───────────── Deportes ─────────────
+// Los deportes del club salen del catálogo (código); `slug` es el ámbito de los roles
+// (sport:<slug>, team:<slug>), el mismo que usa can().
+
+model Sport {
+  id        String   @id @default(cuid())
+  /// Código del catálogo: rugby_xv, hockey, volleyball…
+  code      String
+  /// Ámbito de roles: rugby, hockey…
+  slug      String   @unique
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  teams     Team[]
+}
+
+model Team {
+  id         String       @id @default(cuid())
+  sportId    String
+  sport      Sport        @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  name       String
+  /// Ámbito de roles: rugby-m19…
+  slug       String       @unique
+  /// Arancel mensual en centavos (se emite como cargo en Finanzas). Nulo: sin arancel.
+  monthlyFee Int?
+  active     Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  members    TeamMember[]
+  matches    Match[]
+  absences   Absence[]
+
+  @@unique([sportId, name])
+}
+
+/// Jugador en un plantel. Los coaches y la mesa son roles con ámbito, no miembros.
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  personId String
+  person   Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  number   Int?
+  active   Boolean  @default(true)
+  joinedAt DateTime @default(now())
+
+  @@unique([teamId, personId])
+  @@index([personId, active])
+}
+
+enum MatchStatus {
+  scheduled
+  live
+  /// Silbato final de la mesa; el coach confirma «jugado».
+  pending_close
+  played
+  cancelled
+}
+
+model Match {
+  id           String        @id @default(cuid())
+  teamId       String
+  team         Team          @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  opponent     String
+  startsAt     DateTime
+  home         Boolean       @default(true)
+  venue        String        @default("")
+  status       MatchStatus   @default(scheduled)
+  scoreFor     Int?
+  scoreAgainst Int?
+  /// Minuto a minuto público (sin sesión). Privado por defecto.
+  mamPublic    Boolean       @default(false)
+  createdById  String
+  createdAt    DateTime      @default(now())
+  events       MatchEvent[]
+  clock        MatchClock?
+  callups      MatchCallup[]
+
+  @@index([teamId, startsAt])
+  @@index([status, startsAt])
+}
+
+enum CallupResponse {
+  pending
+  going
+  not_going
+}
+
+/// Convocatoria: a quién se cita, qué respondió y si quedó en la formación del partido.
+model MatchCallup {
+  id          String         @id @default(cuid())
+  matchId     String
+  match       Match          @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  personId    String
+  person      Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  response    CallupResponse @default(pending)
+  note        String?
+  respondedAt DateTime?
+  inLineup    Boolean        @default(false)
+  position    String?
+
+  @@unique([matchId, personId])
+  @@index([personId])
+}
+
+enum MatchSide {
+  own
+  opponent
+}
+
+model MatchEvent {
+  id             String    @id @default(cuid())
+  matchId        String
+  match          Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  personId       String?
+  side           MatchSide @default(own)
+  opponentPlayer String?
+  type           String
+  minute         Int?
+  setNumber      Int?
+  createdById    String
+  createdAt      DateTime  @default(now())
+  /// Deshacer en la mesa: la incidencia queda anulada, no se borra.
+  voidedAt       DateTime?
+
+  @@index([matchId, createdAt])
+  @@index([personId, type])
+}
+
+model MatchClock {
+  matchId        String    @id
+  match          Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  phase          String    @default("not_started")
+  elapsedSeconds Int       @default(0)
+  addedMinutes   Int       @default(0)
+  runningSince   DateTime?
+  updatedAt      DateTime  @updatedAt
+}
+
+/// Ausencia informada por la persona (o su responsable) para una fecha.
+model Absence {
+  id          String    @id @default(cuid())
+  personId    String
+  person      Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  teamId      String
+  team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  date        DateTime  @db.Date
+  reason      String
+  createdById String
+  createdAt   DateTime  @default(now())
+  cancelledAt DateTime?
+
+  @@unique([personId, teamId, date])
+  @@index([teamId, date])
 }
