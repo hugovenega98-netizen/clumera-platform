@@ -15,7 +15,9 @@ export function SpaceSwitcher({ spaces, active }: { spaces: Space[]; active: str
     const res = await fetch('/api/auth/context', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key: space.key }) });
     if (!res.ok) return setError('No se pudo cambiar de espacio. Probá de nuevo.');
     setCurrent(space.key);
-    router.refresh();
+    // Cada espacio abre en su inicio (Administración → inicio institucional).
+    if (space.home !== '/') router.push(space.home);
+    else router.refresh();
   }
   return (
     <>

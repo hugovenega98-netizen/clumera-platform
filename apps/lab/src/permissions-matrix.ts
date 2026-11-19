@@ -23,8 +23,9 @@ export interface PermissionCase {
 const rugby = { type: 'sport', id: 'rugby' } as const;
 
 export const PERMISSION_CASES: PermissionCase[] = [
-  { id: 'person-manage', label: 'Crear cuentas y editar personas', action: 'identity:person.manage', allowed: ['superadmin'] },
-  { id: 'person-view', label: 'Ver fichas de personas', action: 'identity:person.view', allowed: ['superadmin', 'contabilidad', 'coordinador'] },
+  { id: 'person-manage', label: 'Dar altas, crear cuentas y revocar carnets', action: 'identity:person.manage', allowed: ['superadmin'] },
+  { id: 'role-assign', label: 'Asignar y quitar roles con su alcance', action: 'identity:role.assign', allowed: ['superadmin'] },
+  { id: 'person-view', label: 'Ver el padrón y las fichas de personas', action: 'identity:person.view', allowed: ['superadmin', 'contabilidad', 'coordinador'] },
   // El carnet propio lo ve cualquiera con membresía activa (rol implícito de socio).
   { id: 'own-card', label: 'Ver su propio carnet', action: 'identity:card.view', resource: { scopes: [], owner: 'self' }, allowed: ['socio', 'superadmin', 'coach'] },
   { id: 'other-card', label: 'Ver el carnet de otra persona', action: 'identity:card.view', resource: { scopes: [], owner: 'other' }, allowed: ['superadmin'] },

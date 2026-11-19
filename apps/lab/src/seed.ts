@@ -70,6 +70,66 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   });
   await db.person.create({ data: { firstName: 'Raúl', lastName: 'Méndez', email: 'raul.cliente@example.com' } });
 
+  // Padrón para la administración: más socios, una familia con menores, una suspendida, una baja,
+  // altas de este mes y alguien con rol fuera de los perfiles (ámbitos para sugerir al asignar).
+  const PADRON: Array<[string, string, keyof typeof categories | null, { birth?: string; status?: 'suspended' | 'resigned'; recent?: boolean; email?: boolean }]> = [
+    ['Martina', 'Gómez', 'activo', { birth: '1995-04-12', email: true }],
+    ['Sofía', 'Gómez', 'cadete', { birth: '2017-02-01' }],
+    ['Joaquín', 'Gómez', 'cadete', { birth: '2012-09-20' }],
+    ['Lucas', 'Benítez', 'activo', { birth: '1988-11-03' }],
+    ['Ramiro', 'Ortiz', 'vitalicio', { birth: '1950-06-30' }],
+    ['Julieta', 'Méndez', 'activo', { birth: '1991-01-17', status: 'suspended' }],
+    ['Andrés', 'Quiroga', 'activo', { birth: '1979-08-08', status: 'resigned' }],
+    ['Camila', 'Torres', 'activo', { birth: '2000-12-01', recent: true, email: true }],
+    ['Bruno', 'Ferrari', 'cadete', { birth: '2010-03-15', recent: true }],
+    ['Valentina', 'Rossi', 'activo', { birth: '1997-07-22' }],
+    ['Gonzalo', 'Núñez', 'activo', { birth: '1985-05-05' }],
+    ['Ana', 'Castro', null, { birth: '2003-10-10', email: true }],
+    ['Diego', 'Herrera', null, {}],
+  ];
+  const today = new Date();
+  const thisMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+  const padron: Record<string, string> = {};
+  for (const [firstName, lastName, cat, o] of PADRON) {
+    const person = await db.person.create({
+      data: {
+        firstName,
+        lastName,
+        birthDate: o.birth ? new Date(o.birth) : null,
+        email: o.email ? `${firstName}.${lastName}`.normalize('NFD').replace(/[^a-zA-Z.]/g, '').toLowerCase() + '@example.com' : null,
+        ...(cat
+          ? {
+              memberships: {
+                create: {
+                  categoryId: categories[cat]!.id,
+                  memberNumber: String(++memberNumber),
+                  validFrom: o.recent ? thisMonth : since,
+                  status: o.status === 'suspended' ? 'suspended' : o.status === 'resigned' ? 'resigned' : 'active',
+                },
+              },
+            }
+          : {}),
+      },
+      include: { memberships: true },
+    });
+    padron[`${firstName} ${lastName}`] = person.id;
+    const m = person.memberships[0];
+    if (m && o.status) await db.membershipStatusChange.create({ data: { membershipId: m.id, fromStatus: 'active', toStatus: m.status, reason: o.status === 'suspended' ? 'Falta de pago' : 'Renuncia', changedAt: thisMonth } });
+  }
+  await db.familyGroup.create({
+    data: {
+      name: 'Familia Gómez',
+      members: {
+        create: [
+          { personId: padron['Martina Gómez']!, role: 'guardian', relation: 'madre' },
+          { personId: padron['Sofía Gómez']!, role: 'dependent', relation: 'hija' },
+          { personId: padron['Joaquín Gómez']!, role: 'dependent', relation: 'hijo' },
+        ],
+      },
+    },
+  });
+  await db.roleAssignment.create({ data: { personId: padron['Lucas Benítez']!, roleCode: 'coach', scopeType: 'team', scopeId: 'rugby-m12' } });
+
   // Cuenta pendiente: el correo de activación queda en la bandeja de Lab para probar el circuito real.
   const pending = await db.person.create({
     data: { firstName: 'Pedro', lastName: 'Gil', email: 'pendiente@lab.clumera.app', memberships: { create: { categoryId: categories.activo!.id, memberNumber: String(memberNumber + 1), validFrom: since } } },

@@ -10,3 +10,10 @@ export async function authorize(personId: string, action: string, resource?: Res
   const [actor, roles, license] = await Promise.all([loadActor(db, personId), loadRoleCatalog(db), getLicenseState()]);
   return can({ enabledModules: license.enabled, roles }, actor, action, resource);
 }
+
+/** Varias preguntas sobre la misma persona con una sola lectura de roles y licencia. */
+export async function permissionChecker(personId: string): Promise<(action: string, resource?: Resource) => boolean> {
+  const db = getPrisma();
+  const [actor, roles, license] = await Promise.all([loadActor(db, personId), loadRoleCatalog(db), getLicenseState()]);
+  return (action, resource) => can({ enabledModules: license.enabled, roles }, actor, action, resource).allowed;
+}

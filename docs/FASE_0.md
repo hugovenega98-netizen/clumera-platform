@@ -5,12 +5,14 @@ rechaza un módulo sin licencia.**
 
 ## Estado
 
+**Cerrada el 19/11/2026**: instalación y push probados en Android y iPhone reales.
+
 | Criterio | Estado | Evidencia |
 | --- | --- | --- |
 | La API rechaza un módulo sin licencia | ✅ | Unitarias (proxy y Route Handler) + e2e: 403 por Lab y directo contra el core |
 | La PWA es instalable (manifiesto, íconos, SW, sin conexión) | ✅ en Chromium | e2e escritorio y Pixel 7: manifiesto, SW registrado con alcance `/`, página sin conexión |
-| Instalar en Android y iPhone reales | ⏳ | Requiere abrir Lab en los teléfonos (ver abajo) |
-| Push real | ⏳ | Envío por bandeja + push implementado; claves VAPID cargadas en Lab; falta probarlo en el dispositivo real |
+| Instalar en Android y iPhone reales | ✅ | Botón «Instalar app» (aviso nativo en Chrome, pasos de Safari en iPhone); probado por el equipo en ambos |
+| Push real | ✅ | Aviso de prueba desde *Mi cuenta* recibido en ambos teléfonos con la app instalada |
 
 ## Qué hay
 
@@ -38,8 +40,8 @@ rechaza un módulo sin licencia.**
 
 ### Prueba en dispositivo
 
-1. Android (Chrome): abrir Lab, entrar con un perfil, menú ⋮ → *Instalar app*.
-2. iPhone (Safari, iOS 16.4+): Compartir → *Agregar a inicio*, y abrir la app desde el ícono (push solo funciona así).
+1. Android (Chrome): abrir Lab y tocar *Instalar app* (o el acceso de instalación de Chrome).
+2. iPhone (Safari, iOS 16.4+): *Instalar app* muestra los pasos: Compartir → *Agregar a inicio*, y abrir la app desde el ícono (push solo funciona así).
 3. En la app instalada: *Mi cuenta* → *Activar avisos y probar*. Debe llegar el aviso y aparecer en *Avisos*.
 
 ## Pendiente

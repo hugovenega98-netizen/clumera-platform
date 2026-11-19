@@ -8,3 +8,4 @@ export * from './cookie';
 export * from './credentials';
 export * from './family';
 export * from './spaces';
+export * from './directory';

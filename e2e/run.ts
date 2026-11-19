@@ -30,6 +30,7 @@ const coreEnv = {
   CLUMERA_PUBLIC_ORIGIN: LAB_URL,
   CLUMERA_MAIL_DRIVER: 'dev',
   CRON_SECRET: randomBytes(24).toString('hex'),
+  CLUMERA_DOC_PEPPER: randomBytes(24).toString('hex'),
 };
 const labEnv = { ...coreEnv, CLUMERA_LAB: '1', LAB_DATABASE_NAME: LAB_DB, LAB_CORE_URL: CORE_URL };
 const mgmtEnv = {

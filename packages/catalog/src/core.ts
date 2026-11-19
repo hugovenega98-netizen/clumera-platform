@@ -15,10 +15,10 @@ export const identity = defineModule({
   nav: [
     { id: 'card', label: 'Carnet', href: '/carnet', space: 'member', permission: 'identity:card.view' },
     { id: 'family', label: 'Familia', href: '/familia', space: 'member', permission: 'identity:family.manage' },
-    { id: 'people', label: 'Personas', href: '/admin/personas', space: 'admin', permission: 'identity:person.manage' },
+    { id: 'people', label: 'Socios y personas', href: '/admin/personas', space: 'admin', permission: 'identity:person.view' },
   ],
   homeCards: [{ id: 'card', title: 'Mi carnet', space: 'member', permission: 'identity:card.view' }],
-  emits: ['person.created', 'membership.status_changed'],
+  emits: ['person.created', 'membership.status_changed', 'role.assigned', 'role.revoked'],
   listens: [],
 });
 

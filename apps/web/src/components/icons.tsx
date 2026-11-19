@@ -51,6 +51,13 @@ const PATHS: Record<string, ReactNode> = {
   ticket: <path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3zM14 6v12" />,
   more: <path d="M4 6h16M4 12h16M4 18h16" />,
   swap: <path d="M7 7h11l-3-3M17 17H6l3 3" />,
+  people: (
+    <>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20c.8-3.8 3.4-5.5 6.5-5.5s5.7 1.7 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3 2.4 3.5 5.2" />
+    </>
+  ),
+  chart: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
 };
 
 /** Íconos de trazo para la navegación. Decorativos: el texto del enlace lleva el nombre. */
@@ -75,4 +82,6 @@ export const NAV_ICON: Record<string, string> = {
   'events:events': 'ticket',
   'tournaments:tournaments': 'trophy',
   'store:store': 'store',
+  'identity:people': 'people',
+  'finance:accounting': 'chart',
 };
