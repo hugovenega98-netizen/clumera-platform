@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { forbidden, notFound } from 'next/navigation';
 import { AppShell } from '@/components/AppShell';
 import { Scoreboard, Timeline, type LiveData } from '@/components/LiveBoard';
+import { CoachMatchExtras, TemporaryPlayers } from '@/components/MatchExtras';
 import { CoachMatchActions, LineupForm } from '@/components/SportsForms';
 import { getPrisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
@@ -56,6 +57,14 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <CoachMatchActions matchId={m.id} status={m.status} mamPublic={m.mamPublic} scoreFor={m.scoreFor} scoreAgainst={m.scoreAgainst} />
             </Card>
           ) : null}
+          {access.coach ? (
+            <Card title="Transmisión e invitados">
+              <CoachMatchExtras matchId={m.id} streamVideoId={m.streamVideoId} locked={locked || m.status === 'pending_close'} />
+            </Card>
+          ) : null}
+          <Card title="Planilla transitoria">
+            <TemporaryPlayers matchId={m.id} locked={locked} players={m.temporaryPlayers.map((t) => ({ id: t.id, name: t.name, number: t.number }))} />
+          </Card>
           <Card title="Seguir">
             <div className="adm-actions">
               <Link className="cx-btn cx-btn--secondary" href={`/vivo/${m.id}`}>

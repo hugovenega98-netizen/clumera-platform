@@ -58,6 +58,7 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   chart: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+  health: <path d="M12 21s-7-4.5-9-9.5A5 5 0 0 1 12 6a5 5 0 0 1 9 5.5c-2 5-9 9.5-9 9.5zM12 10v5M9.5 12.5h5" />,
 };
 
 /** Íconos de trazo para la navegación. Decorativos: el texto del enlace lleva el nombre. */
@@ -76,6 +77,7 @@ export const NAV_ICON: Record<string, string> = {
   'finance:payments': 'payments',
   'notifications:inbox': 'bell',
   'sports:my-sports': 'sports',
+  'sports:health': 'health',
   'bookings:book': 'calendar',
   'schools:schools': 'activities',
   'summer:summer': 'sun',

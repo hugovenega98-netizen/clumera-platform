@@ -40,6 +40,8 @@ model Person {
   teamMemberships     TeamMember[]
   matchCallups        MatchCallup[]
   absences            Absence[]
+  injuryReports       InjuryReport[]
+  matchFollows        MatchFollow[]
   paymentsMade        Payment[]            @relation("PaymentPayer")
 
   @@index([lastName, firstName])
@@ -543,6 +545,7 @@ model Team {
   members    TeamMember[]
   matches    Match[]
   absences   Absence[]
+  injuryReports InjuryReport[]
 
   @@unique([sportId, name])
 }
@@ -584,11 +587,17 @@ model Match {
   scoreAgainst Int?
   /// Minuto a minuto público (sin sesión). Privado por defecto.
   mamPublic    Boolean       @default(false)
+  /// Transmisión: id de video de YouTube (11 caracteres, validado). Se ve donde se ve el minuto a minuto.
+  streamVideoId String?
   createdById  String
   createdAt    DateTime      @default(now())
   events       MatchEvent[]
   clock        MatchClock?
   callups      MatchCallup[]
+  guestPasses  MatchGuestPass[]
+  follows      MatchFollow[]
+  temporaryPlayers MatchTemporaryPlayer[]
+  substitutions MatchSubstitution[]
 
   @@index([teamId, startsAt])
   @@index([status, startsAt])
@@ -627,6 +636,8 @@ model MatchEvent {
   matchId        String
   match          Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
   personId       String?
+  temporaryPlayerId String?
+  temporaryPlayer MatchTemporaryPlayer? @relation(fields: [temporaryPlayerId], references: [id], onDelete: Restrict)
   side           MatchSide @default(own)
   opponentPlayer String?
   type           String
@@ -666,4 +677,125 @@ model Absence {
 
   @@unique([personId, teamId, date])
   @@index([teamId, date])
+}
+
+/// Pase de invitado al minuto a minuto de un partido privado: el código se muestra una sola vez;
+/// se guarda su HMAC. No crea cuenta ni da acceso a nada más del club.
+model MatchGuestPass {
+  id          String    @id @default(cuid())
+  matchId     String
+  match       Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  codeHash    String    @unique
+  codeHint    String
+  createdById String
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([matchId])
+}
+
+/// Quién sigue un partido (avisos push por incidencia). Convocados y sus responsables lo siguen solos.
+model MatchFollow {
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  personId  String
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([matchId, personId])
+}
+
+/// Planilla transitoria: un nombre y un dorsal para ese partido. Sin cuenta, documento ni membresía.
+model MatchTemporaryPlayer {
+  id        String       @id @default(cuid())
+  matchId   String
+  match     Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  name      String
+  number    Int?
+  createdAt DateTime     @default(now())
+  events    MatchEvent[]
+
+  @@unique([matchId, number])
+}
+
+/// Cambio efectivo: los dos jugaron, ninguno sale de la planilla.
+model MatchSubstitution {
+  id          String   @id @default(cuid())
+  matchId     String
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  outPersonId String
+  inPersonId  String
+  minute      Int?
+  createdById String
+  createdAt   DateTime @default(now())
+
+  @@index([matchId])
+}
+
+// ───────────── Salud deportiva ─────────────
+// Datos clínicos: solo quien tiene sports:health.view asignado por su nombre (Médico/Kine) en el
+// ámbito del deporte. La persona ve su reporte y la nota pública; el coach, solo la disponibilidad.
+
+enum InjuryStatus {
+  evaluation
+  follow_up
+  closed
+}
+
+enum SportAvailability {
+  under_review
+  no_restrictions
+  restricted
+  unavailable
+}
+
+model InjuryReport {
+  id          String          @id @default(cuid())
+  personId    String
+  person      Person          @relation(fields: [personId], references: [id], onDelete: Cascade)
+  teamId      String
+  team        Team            @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  zone        String
+  /// Dolor 0–10.
+  pain        Int
+  context     String
+  impact      String
+  onsetDate   DateTime        @db.Date
+  notes       String          @default("")
+  createdById String
+  createdAt   DateTime        @default(now())
+  case        InjuryCase?
+  sessions    InjurySession[]
+
+  @@index([teamId, createdAt])
+  @@index([personId, createdAt])
+}
+
+/// Estado vigente del seguimiento (resumen de la última evaluación).
+model InjuryCase {
+  reportId     String            @id
+  report       InjuryReport      @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  status       InjuryStatus
+  availability SportAvailability
+  publicNote   String            @default("")
+  privateNote  String            @default("")
+  updatedById  String
+  updatedAt    DateTime          @updatedAt
+}
+
+/// Evaluación inmutable: el historial clínico no se edita.
+model InjurySession {
+  id           String            @id @default(cuid())
+  reportId     String
+  report       InjuryReport      @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  authorId     String
+  authorName   String
+  status       InjuryStatus
+  availability SportAvailability
+  publicNote   String            @default("")
+  privateNote  String            @default("")
+  createdAt    DateTime          @default(now())
+
+  @@index([reportId, createdAt])
 }

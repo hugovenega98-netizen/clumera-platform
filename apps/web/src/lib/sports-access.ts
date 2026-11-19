@@ -52,3 +52,24 @@ export async function staffTeams(personId: string) {
     desk: withScopes.filter((x) => can('sports:match.control', x.resource)).map((x) => x.team),
   };
 }
+
+/**
+ * Equipos sobre los que la persona ve datos clínicos: `sports:health.view` en el ámbito del deporte
+ * o del equipo. Es una acción explícita: ningún comodín (ni Superadmin) la concede.
+ */
+export async function healthTeams(personId: string) {
+  const can = await permissionChecker(personId);
+  const teams = await getPrisma().team.findMany({ where: { sport: { active: true } }, include: { sport: true }, orderBy: [{ sport: { name: 'asc' } }, { name: 'asc' }] });
+  return teams.filter((t) => can('sports:health.view', { scopes: scopesOf(t) }));
+}
+
+/** Sesión + acceso clínico al reporte (401/403/404). */
+export async function healthAccessToReport(reportId: string): Promise<{ ok: true; session: SessionInfo; reportId: string } | { ok: false; response: NextResponse }> {
+  const session = await getCurrentSession();
+  if (!session) return { ok: false, response: errorResponse('unauthenticated', 'Ingresá para continuar', 401) };
+  const r = await getPrisma().injuryReport.findUnique({ where: { id: reportId }, select: { id: true, team: { select: { slug: true, sport: { select: { slug: true } } } } } });
+  if (!r) return { ok: false, response: errorResponse('not_found', 'Reporte inexistente', 404) };
+  const can = await permissionChecker(session.personId);
+  if (!can('sports:health.view', { scopes: scopesOf(r.team) })) return { ok: false, response: errorResponse('forbidden', 'Los datos de salud son solo para Médico/Kine', 403) };
+  return { ok: true, session, reportId: r.id };
+}

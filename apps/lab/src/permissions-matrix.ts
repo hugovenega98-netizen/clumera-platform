@@ -34,7 +34,11 @@ export const PERMISSION_CASES: PermissionCase[] = [
   { id: 'payment-record', label: 'Registrar cobros (caja, transferencia, posnet)', action: 'finance:payment.record', allowed: ['superadmin', 'contabilidad', 'caja'] },
   { id: 'charge-issue', label: 'Emitir y anular cargos, cuotas del mes', action: 'finance:charge.issue', allowed: ['superadmin', 'contabilidad'] },
   { id: 'finance-report', label: 'Ver reportes y conciliación de Finanzas', action: 'finance:report.view', allowed: ['superadmin', 'contabilidad'] },
-  { id: 'health', label: 'Ver datos de salud de rugby', action: 'sports:health.view', resource: { scopes: [rugby] }, allowed: ['superadmin', 'medico'] },
+  // Clínico: ningún comodín lo concede, ni el de Superadmin (solo quien lo tiene asignado).
+  { id: 'health', label: 'Ver datos de salud de rugby', action: 'sports:health.view', resource: { scopes: [rugby] }, allowed: ['medico'] },
+  { id: 'health-hockey', label: 'Ver datos de salud de hockey', action: 'sports:health.view', resource: { scopes: [{ type: 'sport', id: 'hockey' }] }, allowed: [] },
+  { id: 'sports-view-m19', label: 'Ver el minuto a minuto privado de Rugby M19 y seguir el partido', action: 'sports:view', resource: { scopes: [rugby, { type: 'team', id: 'rugby-m19' }] }, allowed: ['superadmin', 'socio', 'coach', 'medico', 'mesa'] },
+  // Transmisión, pases de invitado y planilla transitoria: quien arma la formación.
   { id: 'lineup-m19', label: 'Armar la formación de Rugby M19', action: 'sports:lineup.edit', resource: { scopes: [rugby, { type: 'team', id: 'rugby-m19' }] }, allowed: ['superadmin', 'coach'] },
   { id: 'lineup-m17', label: 'Armar la formación de Rugby M17', action: 'sports:lineup.edit', resource: { scopes: [rugby, { type: 'team', id: 'rugby-m17' }] }, allowed: ['superadmin'] },
   { id: 'match-control', label: 'Operar la mesa de control de rugby', action: 'sports:match.control', resource: { scopes: [rugby] }, allowed: ['superadmin', 'mesa'] },

@@ -52,10 +52,17 @@ export function moduleOfAction(action: string): ModuleId | null {
   return ACTION.exec(action)?.[1] ?? null;
 }
 
+/**
+ * Acciones que ningún comodín concede (`*`, `sports:*`): hay que tenerlas asignadas por su nombre.
+ * Los datos clínicos son de quien atiende la salud, no del administrador general (como en el core
+ * anterior: «el administrador general no tiene acceso al historial clínico»).
+ */
+export const EXPLICIT_ONLY_ACTIONS: ReadonlySet<string> = new Set(['sports:health.view']);
+
 function grants(permission: string, action: string, moduleId: string): 'full' | 'self' | false {
   const self = permission.endsWith(':self');
   const base = self ? permission.slice(0, -':self'.length) : permission;
-  const hit = base === '*' || base === action || base === `${moduleId}:*`;
+  const hit = base === action || (!EXPLICIT_ONLY_ACTIONS.has(action) && (base === '*' || base === `${moduleId}:*`));
   if (!hit) return false;
   return self ? 'self' : 'full';
 }

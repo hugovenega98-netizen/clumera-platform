@@ -13,6 +13,8 @@ import { actsFor, teamAccess } from '@/lib/sports-access';
 export const metadata: Metadata = { title: 'Equipo' };
 export const dynamic = 'force-dynamic';
 
+const AVAILABILITY_TONE: Record<string, string> = { absent: 'cx-tag--bad', unavailable: 'cx-tag--bad', restricted: 'cx-tag--warn', under_review: 'cx-tag--info', no_restrictions: 'cx-tag--ok' };
+
 const when = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' });
 const STATUS: Record<string, string> = { scheduled: 'Programado', live: 'En juego', pending_close: 'Final (a confirmar)', played: 'Jugado', cancelled: 'Suspendido' };
 const RESP: Record<string, { label: string; tone: string }> = { going: { label: 'Voy', tone: 'cx-tag--ok' }, not_going: { label: 'No voy', tone: 'cx-tag--bad' }, pending: { label: 'Sin responder', tone: 'cx-tag--warn' } };
@@ -174,12 +176,12 @@ export default async function TeamPage({ params, searchParams }: { params: Promi
                       </span>
                     ) : null}
                   </span>
-                  <span className={`cx-tag ${p.availability.code === 'absent' ? 'cx-tag--bad' : ''}`}>{p.availability.label}</span>
+                  <span className={`cx-tag ${AVAILABILITY_TONE[p.availability.code] ?? ''}`}>{p.availability.label}</span>
                 </div>
               ))}
             </div>
             <p className="cx-muted" style={{ fontSize: 'var(--cx-fs-small)' }}>
-              La disponibilidad por salud llega con el seguimiento médico; acá nunca se ven diagnósticos.
+              La disponibilidad por salud la informa Médico/Kine; acá nunca se ven diagnósticos ni notas.
             </p>
           </Card>
           <Card title="Nuevo partido">

@@ -109,20 +109,31 @@ export async function AppShell({
         </nav>
       </aside>
       <header className="cx-topbar cx-shell__top">
+        {/* Móvil (lienzo): emblema, club y pantalla; cambiar de espacio y avisos. */}
         <Link href={home} className="cx-topbar__brand">
-          <img src={clientConfig.assets.emblemOnDark} alt="" width={32} height={32} />
-          <span className="cx-sr-only">{clientConfig.identity.displayName} · </span>
-          <span>{title}</span>
+          <img src={clientConfig.assets.emblemOnDark} alt="" width={36} height={36} />
+          <span className="cx-topbar__titles">
+            <span className="cx-topbar__kicker">{clientConfig.identity.displayName}</span>
+            <span className="cx-sr-only"> · </span>
+            <span className="cx-topbar__title">{title}</span>
+          </span>
         </Link>
         <span className="cx-shell__title" aria-hidden="true">
           {title}
         </span>
         <div className="cx-topbar__actions">
+          <Link href="/espacios" className="cx-iconbtn cx-topbar__mobile" aria-label="Cambiar de espacio">
+            <Icon name="swap" />
+          </Link>
           <Link href="/avisos" className="cx-iconbtn" aria-label={unread ? `Avisos, ${unread} sin leer` : 'Avisos'}>
             <Icon name="bell" />
             {unread ? <span className="cx-iconbtn__badge">{unread > 99 ? '99+' : unread}</span> : null}
           </Link>
-          <Link href="/cuenta" className="cx-link">
+          {/* Escritorio (lienzo): avatar y nombre, a Mi cuenta. En el teléfono la cuenta está en «Más». */}
+          <Link href="/cuenta" className="cx-topbar__me">
+            <span className="cx-topbar__avatar" aria-hidden="true">
+              {session.firstName.charAt(0).toUpperCase()}
+            </span>
             {session.firstName}
           </Link>
         </div>

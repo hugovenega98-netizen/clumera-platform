@@ -8,7 +8,10 @@ import { PHASE, Scoreboard, Timeline, type LiveData } from './LiveBoard';
 interface Props {
   initial: LiveData;
   events: Array<{ id: string; label: string; points: number }>;
-  players: Array<{ personId: string; name: string }>;
+  /** En cancha (formación) y de la planilla transitoria. */
+  players: Array<{ id: string; kind: 'person' | 'temporary'; name: string }>;
+  /** Convocados que todavía no entraron (para cambios). */
+  bench: Array<{ id: string; name: string }>;
   usesClock: boolean;
   family: string;
   periodCount: number;
@@ -32,13 +35,17 @@ const CLOCK_NEXT: Record<string, Array<{ action: string; label: string }>> = {
  * Mesa de control: reloj, incidencias por equipo y deshacer. Cada carga va al servidor, que valida
  * el deporte, el estado del partido y la formación; la pantalla se refresca con la respuesta.
  */
-export function DeskConsole({ initial, events, players, usesClock, family }: Props) {
+export function DeskConsole({ initial, events, players, bench, usesClock, family }: Props) {
   const [data, setData] = useState(initial);
   const [side, setSide] = useState<'own' | 'opponent'>('own');
   const [player, setPlayer] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [subOut, setSubOut] = useState('');
+  const [subIn, setSubIn] = useState('');
   const id = initial.id;
+  const chosen = players.find((p) => `${p.kind}:${p.id}` === player);
+  const onField = players.filter((p) => p.kind === 'person');
 
   async function refresh() {
     const res = await fetch(`/api/sports/matches/${id}/live`, { cache: 'no-store' }).catch(() => null);
@@ -52,8 +59,18 @@ export function DeskConsole({ initial, events, players, usesClock, family }: Pro
     if (!r.ok) setError(r.error.message);
     await refresh();
   }
+  async function substitute() {
+    setBusy(true);
+    setError('');
+    const r = await postJson(`/api/sports/matches/${id}/substitutions`, { outPersonId: subOut, inPersonId: subIn });
+    setBusy(false);
+    if (!r.ok) return setError(r.error.message);
+    // La formación cambió: recarga para traer quién está en cancha.
+    location.reload();
+  }
   async function undo() {
-    const last = data.events[0];
+    // Los cambios no se deshacen desde acá: solo incidencias.
+    const last = data.events.find((e) => e.type !== 'substitution');
     if (!last) return;
     setBusy(true);
     const res = await fetch(`/api/sports/events/${last.id}`, { method: 'DELETE' }).catch(() => null);
@@ -119,7 +136,7 @@ export function DeskConsole({ initial, events, players, usesClock, family }: Pro
               <select id="desk-player" className="cx-select" value={player} onChange={(e) => setPlayer(e.target.value)}>
                 <option value="">Sin indicar</option>
                 {players.map((p) => (
-                  <option key={p.personId} value={p.personId}>
+                  <option key={`${p.kind}:${p.id}`} value={`${p.kind}:${p.id}`}>
                     {p.name}
                   </option>
                 ))}
@@ -133,7 +150,13 @@ export function DeskConsole({ initial, events, players, usesClock, family }: Pro
                 type="button"
                 className="desk__event"
                 disabled={!canRecord || busy}
-                onClick={() => act(`/api/sports/matches/${id}/events`, { type: ev.id, side, personId: side === 'own' && player ? player : null })}
+                onClick={() => act(`/api/sports/matches/${id}/events`, {
+                    type: ev.id,
+                    side,
+                    personId: side === 'own' && chosen?.kind === 'person' ? chosen.id : null,
+                    temporaryPlayerId: side === 'own' && chosen?.kind === 'temporary' ? chosen.id : null,
+                  })
+                }
               >
                 {ev.label}
                 {ev.points ? <span className="cx-muted"> +{ev.points}</span> : null}
@@ -142,13 +165,50 @@ export function DeskConsole({ initial, events, players, usesClock, family }: Pro
           </div>
           {!canRecord && usesClock ? <p className="cx-muted">{phase === 'not_started' ? 'Iniciá el reloj para cargar incidencias.' : 'El reloj está terminado.'}</p> : null}
           <div className="adm-actions">
-            <Button variant="secondary" onClick={undo} disabled={busy || !data.events.length}>
+            <Button variant="secondary" onClick={undo} disabled={busy || !data.events.some((e) => e.type !== 'substitution')}>
               Deshacer última
             </Button>
             <Button variant="danger" onClick={() => act(`/api/sports/matches/${id}/finish`)} disabled={busy || (usesClock && phase !== 'finished' && phase !== 'not_started')}>
               Final del partido
             </Button>
           </div>
+        </section>
+      ) : null}
+
+      {live && onField.length && bench.length ? (
+        <section className="cx-card" aria-label="Cambio">
+          <h2 className="cx-card__title">Cambio</h2>
+          <div className="form-grid">
+            <div className="cx-field">
+              <label className="cx-label" htmlFor="sub-out">
+                Sale
+              </label>
+              <select id="sub-out" className="cx-select" value={subOut} onChange={(e) => setSubOut(e.target.value)}>
+                <option value="">Elegí</option>
+                {onField.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="cx-field">
+              <label className="cx-label" htmlFor="sub-in">
+                Entra
+              </label>
+              <select id="sub-in" className="cx-select" value={subIn} onChange={(e) => setSubIn(e.target.value)}>
+                <option value="">Elegí</option>
+                {bench.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <Button variant="secondary" onClick={substitute} disabled={busy || !subOut || !subIn || !canRecord}>
+            Registrar cambio
+          </Button>
         </section>
       ) : null}
 

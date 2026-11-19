@@ -31,7 +31,11 @@ export default async function DeskPage({ params }: { params: Promise<{ id: strin
       <DeskConsole
         initial={live}
         events={sport.events.filter((e) => canRecordSportEvent(sport.code, e.id))}
-        players={m.callups.filter((c) => c.inLineup).map((c) => ({ personId: c.personId, name: `${c.person.firstName} ${c.person.lastName}` }))}
+        players={[
+          ...m.callups.filter((c) => c.inLineup).map((c) => ({ id: c.personId, kind: 'person' as const, name: `${c.person.firstName} ${c.person.lastName}` })),
+          ...m.temporaryPlayers.map((t) => ({ id: t.id, kind: 'temporary' as const, name: `${t.name}${t.number != null ? ` (${t.number})` : ''} · planilla` })),
+        ]}
+        bench={m.callups.filter((c) => !c.inLineup && c.response !== 'not_going').map((c) => ({ id: c.personId, name: `${c.person.firstName} ${c.person.lastName}` }))}
         usesClock={usesClock(sport.code)}
         family={sport.family}
         periodCount={sport.periodCount}

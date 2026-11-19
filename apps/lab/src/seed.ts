@@ -2,7 +2,7 @@ import { baseRoles, roleNames } from '@clumera/catalog';
 import type { PrismaClient } from '@clumera/db';
 import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } from '@clumera/finance';
 import { createAuthService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
-import { createMatch, createSport, createTeam, setLineup, setTeamMember, teamFeeRows } from '@clumera/sports';
+import { createMatch, createSport, createTeam, recordEvaluation, reportInjury, setLineup, setTeamMember, teamFeeRows } from '@clumera/sports';
 import type { Mailer } from '@clumera/mail';
 import { LAB_PROFILES } from './profiles';
 
@@ -280,6 +280,14 @@ async function seedSports(db: PrismaClient, padron: Record<string, string>): Pro
   const todayMatch = ok(await createMatch(db, admin.id, { teamId: primera, opponent: 'San Martín', startsAt: dayAt(0, 18), home: true, venue: 'Cancha 1' })).id;
   await db.matchCallup.updateMany({ where: { matchId: todayMatch }, data: { response: 'going', respondedAt: new Date() } });
   ok(await setLineup(db, todayMatch, [martin, padron['Lucas Benítez']!, padron['Gonzalo Núñez']!]));
+
+  // Salud: un seguimiento abierto con evaluación (Gonzalo, Primera) y un reporte sin evaluar (Iván, M19).
+  // Datos ficticios de Lab. El coach solo ve «Con restricciones» / «Pendiente de evaluación».
+  const medico = await byEmail('medico@lab.clumera.app');
+  const gonzalo = padron['Gonzalo Núñez']!;
+  const injury = ok(await reportInjury(db, gonzalo, { personId: gonzalo, teamId: primera, zone: 'Hombro izquierdo', pain: 5, context: 'Partido', impact: 'Limita algunos ejercicios', onsetDate: dayAt(-6, 12), notes: 'Golpe en un tackle.' })).id;
+  ok(await recordEvaluation(db, { personId: medico, name: 'Laura Paz' }, injury, { status: 'follow_up', availability: 'restricted', publicNote: 'Sin contacto por dos semanas; trabajo de movilidad.', privateNote: 'Ficticio de Lab: contusión, sin lesión estructural.' }));
+  ok(await reportInjury(db, juveniles[0]!, { personId: juveniles[0]!, teamId: m19, zone: 'Tobillo derecho', pain: 3, context: 'Entrenamiento', impact: 'Puedo entrenar con molestia', onsetDate: dayAt(-1, 12) }));
 }
 
 /** Vacía la base de Lab (todas las tablas salvo el historial de migraciones). Solo tras assertLabTarget. */

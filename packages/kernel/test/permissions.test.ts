@@ -48,3 +48,17 @@ describe('can', () => {
     expect(can(ctx, coachM19, 'lineup')).toEqual({ allowed: false, reason: 'invalid_action' });
   });
 });
+
+describe('acciones explícitas (datos clínicos)', () => {
+  it('ningún comodín concede sports:health.view: hay que tenerla por su nombre', () => {
+    const roles = { superadmin: ['*'], sportsAdmin: ['sports:*'], medical: ['sports:view', 'sports:health.view'] };
+    const ctx = { enabledModules: new Set(['sports']), roles };
+    const club = { type: 'club' as const, id: null };
+    const rugby = { scopes: [{ type: 'sport' as const, id: 'rugby' }] };
+    expect(can(ctx, { personId: 'a', assignments: [{ role: 'superadmin', scope: club }] }, 'sports:health.view', rugby).allowed).toBe(false);
+    expect(can(ctx, { personId: 'a', assignments: [{ role: 'sportsAdmin', scope: club }] }, 'sports:health.view', rugby).allowed).toBe(false);
+    expect(can(ctx, { personId: 'a', assignments: [{ role: 'superadmin', scope: club }] }, 'sports:manage', rugby).allowed).toBe(true);
+    expect(can(ctx, { personId: 'm', assignments: [{ role: 'medical', scope: { type: 'sport', id: 'rugby' } }] }, 'sports:health.view', rugby).allowed).toBe(true);
+    expect(can(ctx, { personId: 'm', assignments: [{ role: 'medical', scope: { type: 'sport', id: 'rugby' } }] }, 'sports:health.view', { scopes: [{ type: 'sport', id: 'hockey' }] }).allowed).toBe(false);
+  });
+});

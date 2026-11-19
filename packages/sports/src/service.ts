@@ -3,8 +3,9 @@
  * rendimiento. La autorización la hace la app con can() y los ámbitos de `scopesOf()`; acá se
  * validan las reglas del deporte y del partido.
  */
-import { appendOutbox, type PrismaClient } from '@clumera/db';
+import { appendOutbox, type Prisma, type PrismaClient } from '@clumera/db';
 import { createEvent, DomainError, type Result, type Scope } from '@clumera/kernel';
+import { medicalAvailability } from './health';
 import {
   canDeskRecord,
   canRecordSportEvent,
@@ -167,12 +168,13 @@ export async function roster(db: PrismaClient, teamId: string, date: Date) {
     db.absence.findMany({ where: { teamId, date: day, cancelledAt: null }, select: { personId: true, reason: true } }),
   ]);
   const absent = new Map(absences.map((a) => [a.personId, a.reason]));
+  const medical = await medicalAvailability(db, teamId, members.map((m) => m.personId));
   return members.map((m) => ({
     personId: m.personId,
     firstName: m.person.firstName,
     lastName: m.person.lastName,
     number: m.number,
-    availability: playerAvailability(absent.has(m.personId), null),
+    availability: playerAvailability(absent.has(m.personId), medical.get(m.personId) ?? null),
     absenceReason: absent.get(m.personId) ?? null,
   }));
 }
@@ -207,6 +209,7 @@ export async function matchDetail(db: PrismaClient, matchId: string) {
       clock: true,
       callups: { include: { person: { select: { id: true, firstName: true, lastName: true } } }, orderBy: [{ person: { lastName: 'asc' } }] },
       events: { where: { voidedAt: null }, orderBy: { createdAt: 'asc' } },
+      temporaryPlayers: { orderBy: [{ number: 'asc' }, { name: 'asc' }] },
     },
   });
 }
@@ -263,14 +266,16 @@ export interface RecordEventInput {
   type: string;
   side: 'own' | 'opponent';
   personId?: string | null;
+  temporaryPlayerId?: string | null;
   opponentPlayer?: string | null;
 }
 
 /** Incidencia desde la mesa: solo en juego, tipos del deporte, jugador en la formación. */
 export async function recordEvent(db: PrismaClient, matchId: string, actorPersonId: string, input: RecordEventInput, now = new Date()): Promise<Result<{ id: string; score: { own: number; opponent: number } }>> {
-  const m = await db.match.findUnique({ where: { id: matchId }, include: { clock: true, team: { include: { sport: true } }, events: { where: { voidedAt: null } }, callups: { where: { inLineup: true } } } });
+  const m = await db.match.findUnique({ where: { id: matchId }, include: { clock: true, team: { include: { sport: true } }, events: { where: { voidedAt: null } }, callups: { where: { inLineup: true } }, temporaryPlayers: { select: { id: true } } } });
   if (!m) return fail('not_found', 'Partido inexistente');
   const code = m.team.sport.code;
+  if (input.side === 'own' && input.temporaryPlayerId && !m.temporaryPlayers.some((t) => t.id === input.temporaryPlayerId)) return fail('invalid_input', 'El jugador no está en la planilla de este partido');
   if (!canDeskRecord(m.status, m.clock?.phase)) return fail('conflict', 'La Mesa de control está cerrada: no se pueden agregar incidencias');
   if (!canRecordSportEvent(code, input.type)) return fail('invalid_input', 'Incidencia inválida para este deporte');
   if (input.side !== 'own' && input.side !== 'opponent') return fail('invalid_input', 'Equipo inválido');
@@ -283,17 +288,23 @@ export async function recordEvent(db: PrismaClient, matchId: string, actorPerson
     return fail('conflict', (e as Error).message);
   }
   if (usesClock(code) && (!m.clock || m.clock.phase === 'not_started')) return fail('conflict', 'Iniciá el reloj antes de cargar incidencias');
-  const event = await db.matchEvent.create({
+  const event = await db.$transaction(async (tx) => {
+    const created = await tx.matchEvent.create({
     data: {
       matchId,
       type: input.type,
       side: input.side,
-      personId: input.side === 'own' ? (input.personId ?? null) : null,
+      personId: input.side === 'own' && !input.temporaryPlayerId ? (input.personId ?? null) : null,
+      temporaryPlayerId: input.side === 'own' ? (input.temporaryPlayerId ?? null) : null,
       opponentPlayer: input.side === 'opponent' ? input.opponentPlayer?.trim().slice(0, 100) || null : null,
       minute: usesClock(code) ? clockMinute(m.clock, now, code) : null,
       setNumber,
       createdById: actorPersonId,
     },
+    });
+    // Para los avisos por incidencia (la mesa nunca registra lesiones).
+    await appendOutbox(tx, createEvent('match.event_recorded', 'sports', { matchId, eventId: created.id }));
+    return created;
   });
   const score = matchEventScore([...m.events, event], code, m.home);
   return { ok: true, value: { id: event.id, score } };
@@ -347,15 +358,25 @@ export async function setMatchPublic(db: PrismaClient, matchId: string, mamPubli
 }
 
 /** Minuto a minuto: marcador, reloj y cronología sin datos personales más allá del nombre. */
-export async function liveView(db: PrismaClient, matchId: string, now = new Date()) {
+export async function liveView(db: PrismaClient | Prisma.TransactionClient, matchId: string, now = new Date()) {
   const m = await db.match.findUnique({
     where: { id: matchId },
-    include: { team: { include: { sport: true } }, clock: true, events: { where: { voidedAt: null }, orderBy: { createdAt: 'desc' }, take: 200 } },
+    include: {
+      team: { include: { sport: true } },
+      clock: true,
+      events: { where: { voidedAt: null }, orderBy: { createdAt: 'desc' }, take: 200, include: { temporaryPlayer: { select: { name: true, number: true } } } },
+      substitutions: { orderBy: { createdAt: 'desc' } },
+    },
   });
   if (!m) return null;
   const code = m.team.sport.code;
   const names = new Map(
-    (await db.person.findMany({ where: { id: { in: m.events.map((e) => e.personId).filter((x): x is string => Boolean(x)) } }, select: { id: true, firstName: true, lastName: true } })).map((p) => [p.id, `${p.firstName} ${p.lastName}`]),
+    (
+      await db.person.findMany({
+        where: { id: { in: [...m.events.map((e) => e.personId), ...m.substitutions.flatMap((x) => [x.inPersonId, x.outPersonId])].filter((x): x is string => Boolean(x)) } },
+        select: { id: true, firstName: true, lastName: true },
+      })
+    ).map((p) => [p.id, `${p.firstName} ${p.lastName}`]),
   );
   const calc = matchEventScore(m.events, code, m.home);
   const locked = isMatchLocked(m.status);
@@ -370,20 +391,44 @@ export async function liveView(db: PrismaClient, matchId: string, now = new Date
     startsAt: m.startsAt,
     status: m.status,
     mamPublic: m.mamPublic,
+    streamVideoId: m.streamVideoId,
     score: locked || m.status === 'pending_close' ? { own: m.scoreFor ?? calc.own, opponent: m.scoreAgainst ?? calc.opponent } : calc,
     clock: usesClock(code) ? clockView(m.clock, now, code) : null,
     volley: code === 'volleyball' ? volleyballState(m.events) : null,
     softball: code === 'softball' ? softballState(m.events, { home: m.home }) : null,
-    events: m.events.map((e) => ({
-      id: e.id,
-      side: e.side,
-      type: e.type,
-      label: sportEventLabel(code, e.type),
-      minute: e.minute,
-      setNumber: e.setNumber,
-      points: sportEventPoints(code, e.type),
-      player: e.side === 'opponent' ? (e.opponentPlayer ?? '') : e.personId ? (names.get(e.personId) ?? '') : '',
-    })),
+    events: [
+      ...m.events.map((e) => ({
+        id: e.id,
+        at: e.createdAt.getTime(),
+        side: e.side,
+        type: e.type,
+        label: sportEventLabel(code, e.type),
+        minute: e.minute,
+        setNumber: e.setNumber,
+        points: sportEventPoints(code, e.type),
+        player:
+          e.side === 'opponent'
+            ? (e.opponentPlayer ?? '')
+            : e.temporaryPlayer
+              ? `${e.temporaryPlayer.name}${e.temporaryPlayer.number != null ? ` (${e.temporaryPlayer.number})` : ''}`
+              : e.personId
+                ? (names.get(e.personId) ?? '')
+                : '',
+      })),
+      ...m.substitutions.map((x) => ({
+        id: `sub-${x.id}`,
+        at: x.createdAt.getTime(),
+        side: 'own' as const,
+        type: 'substitution',
+        label: 'Cambio',
+        minute: x.minute,
+        setNumber: null,
+        points: 0,
+        player: `entra ${names.get(x.inPersonId) ?? ''}, sale ${names.get(x.outPersonId) ?? ''}`,
+      })),
+    ]
+      .sort((a, b) => b.at - a.at)
+      .map(({ at: _at, ...rest }) => rest),
   };
 }
 

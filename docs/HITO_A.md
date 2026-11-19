@@ -71,7 +71,21 @@ Mixto, Tomás · Rugby · M12). Martín es coach de M19 y juega en el plantel su
 Quién: la mesa opera solo los deportes de su ámbito; el coach, sus equipos; administración de
 deportes, Superadmin. Recepción y Socio: sin mesa ni administración (403).
 
+## Deportes B (entregado)
+
+| Qué | Dónde |
+| --- | --- |
+| Salud: la persona o su responsable informa una lesión; Médico/Kine evalúa (estado, disponibilidad, indicaciones, nota privada) con historial inmutable; el coach ve solo la disponibilidad en el plantel | `packages/sports/src/health.ts`, `/deportes/salud`, `/deportes/salud/[id]` |
+| `sports:health.view` es una acción explícita: ningún comodín la concede, ni el de Superadmin | `packages/kernel/src/permissions.ts` |
+| Transmisión de YouTube en el minuto a minuto (solo un id validado; embed sin cookies) | `packages/sports/src/extras.ts`, `/deportes/partidos/[id]`, `/vivo/[id]` |
+| Pases de invitado: código por partido (se guarda su HMAC), cookie firmada de 12 h, revocables, sin valor al terminar el partido | `/api/sports/matches/[id]/guest-passes`, `/api/sports/guest` |
+| Seguir partido y aviso por incidencia a convocados, sus responsables y seguidores (outbox `match.event_recorded`) | `apps/web/src/lib/consumers.ts` |
+| Planilla transitoria (jugadores de un partido) y cambios desde la mesa | `/deportes/partidos/[id]`, `/deportes/mesa/[id]` |
+
+Lab: Gonzalo Núñez (Primera) con seguimiento «Con restricciones» y Iván Rojas (M19) con un reporte
+sin evaluar; datos ficticios. Los avisos de salud son genéricos y los eventos del outbox no llevan
+datos clínicos.
+
 ## Siguiente
 
-- Deportes B: salud (lesiones, seguimiento médico, disponibilidad sin diagnóstico para el coach), streaming, pases de invitado al minuto a minuto, avisos push por incidencia, jugadores temporales y cambios.
 - Pendiente de Identidad: editar datos de la persona y cambiar el estado de la membresía desde la ficha; importar padrón desde Excel; familias desde la administración.
