@@ -2017,3 +2017,34 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--cx-space-3);
 }
+
+/* ───────── Colonia: documentos y coordinación ───────── */
+.doc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.doc-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cx-space-3);
+  padding: 10px 0;
+}
+.doc-list li + li {
+  border-top: 1px solid var(--cx-line-soft);
+}
+.group-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-space-3);
+  min-height: var(--cx-touch);
+  padding: 6px 0;
+}
+.lock-note {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--cx-line-soft);
+  font-size: var(--cx-fs-small);
+  color: var(--cx-text-2);
+}

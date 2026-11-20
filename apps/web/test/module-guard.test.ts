@@ -15,6 +15,8 @@ describe('barrera de módulos', () => {
   it('las páginas de un módulo apagado van a «no disponible»', () => {
     expect(decideModuleAccess('/reservas', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'bookings' });
     // La reserva pública sin cuenta también es del módulo (y su enlace firmado).
+    expect(decideModuleAccess('/verano/inscripcion/x', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'summer' });
+    expect(decideModuleAccess('/admin/verano', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'summer' });
     expect(decideModuleAccess('/escuelas', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'schools' });
     expect(decideModuleAccess('/escuelas/asistencia', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'schools' });
     expect(decideModuleAccess('/admin/escuelas', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'schools' });
