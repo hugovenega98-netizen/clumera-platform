@@ -3,7 +3,7 @@ import { manifest as access } from '@clumera/module-access/manifest';
 import { manifest as bookings } from '@clumera/module-bookings/manifest';
 import { manifest as events } from '@clumera/module-events';
 import { manifest as facilities } from '@clumera/module-facilities/manifest';
-import { manifest as schools } from '@clumera/module-schools';
+import { manifest as schools } from '@clumera/module-schools/manifest';
 import { manifest as store } from '@clumera/module-store';
 import { manifest as summer } from '@clumera/module-summer';
 import { manifest as tournaments } from '@clumera/module-tournaments';

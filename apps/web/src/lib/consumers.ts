@@ -3,6 +3,7 @@ import { processOutbox, type OutboxConsumer, type PrismaClient } from '@clumera/
 import { formatMoney, receiptNumber } from '@clumera/finance';
 import { bookingTitle, confirmPaidBookings, SERIES_CANCEL_REASON } from '@clumera/module-bookings';
 import { deliverPendingPush, notify, vapidFromEnv } from '@clumera/notifications';
+import { guardiansOf } from '@clumera/identity';
 import { eventNotice, matchAudience } from '@clumera/sports';
 import { mailGuestBooking } from './public-booking';
 import { getCredentials } from './services';
@@ -48,6 +49,25 @@ export const consumers: OutboxConsumer[] = [
       };
       const [t, body] = text[event.type]!;
       await notify(tx, { personIds: [p.personId], eventKey: `${event.type}:${p.bookingId}`, source: 'bookings', title: t, body, url: '/reservas?vista=mias' });
+    },
+  },
+  {
+    // Escuelas → Avisos: a la persona y a sus responsables (un menor no tiene cuenta).
+    name: 'notifications:enrollment',
+    types: ['enrollment.confirmed', 'enrollment.waitlisted', 'enrollment.promoted'],
+    async handle(event, tx) {
+      const p = event.payload as { enrollmentId: string; personId: string };
+      const e = await tx.enrollment.findUnique({ where: { id: p.enrollmentId }, select: { waitPosition: true, person: { select: { firstName: true } }, group: { select: { name: true, schedule: true, program: { select: { name: true, module: true } } } } } });
+      if (!e || e.group.program.module !== 'schools') return;
+      const what = `${e.group.program.name} · ${e.group.name}`;
+      const text: Record<string, [string, string]> = {
+        'enrollment.confirmed': [`Inscripción confirmada: ${e.person.firstName}`, `${what} (${e.group.schedule}). La cuota del mes está en Pagos.`],
+        'enrollment.waitlisted': [`${e.person.firstName} quedó en lista de espera`, `${what}: puesto ${e.waitPosition ?? '—'}. Te avisamos si se libera un lugar.`],
+        'enrollment.promoted': [`Se liberó un lugar: ${e.person.firstName} quedó inscripto`, `${what} (${e.group.schedule}). La cuota del mes está en Pagos.`],
+      };
+      const [title, body] = text[event.type]!;
+      const personIds = [...new Set([p.personId, ...(await guardiansOf(tx as unknown as PrismaClient, p.personId))])];
+      await notify(tx, { personIds, eventKey: `${event.type}:${p.enrollmentId}`, source: 'schools', title, body, url: '/escuelas' });
     },
   },
   {

@@ -55,6 +55,7 @@ export const PERMISSION_CASES: PermissionCase[] = [
   { id: 'bookings-manage', label: 'Ver y cancelar las reservas del día de otras personas', action: 'bookings:manage', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },
   { id: 'bookings-series', label: 'Cargar y cancelar reservas fijas (el mismo turno cada semana)', action: 'bookings:manage', resource: { scopes: [{ type: 'venue', id: 'padel-1' }] }, allowed: ['superadmin', 'instalaciones'] },
   { id: 'attendance', label: 'Tomar asistencia en natación', action: 'schools:attendance.mark', resource: { scopes: [{ type: 'activity', id: 'natacion' }] }, allowed: ['superadmin', 'profesor'] },
+  { id: 'schools-enroll', label: 'Inscribirse (o a su familia) en una escuela', action: 'schools:enroll', allowed: ['superadmin', 'socio', 'coach'] },
   { id: 'schools-manage', label: 'Administrar escuelas', action: 'schools:manage', allowed: ['superadmin', 'coordinador'] },
   { id: 'tournaments', label: 'Organizar torneos', action: 'tournaments:manage', allowed: ['superadmin', 'organizador'] },
   { id: 'sell', label: 'Vender en la tienda', action: 'store:sell', allowed: ['superadmin', 'caja'] },

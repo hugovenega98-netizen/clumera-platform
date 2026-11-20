@@ -3,6 +3,7 @@ import type { PrismaClient } from '@clumera/db';
 import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } from '@clumera/finance';
 import { createAuthService, createCredentialService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
 import { checkAccess } from '@clumera/module-access';
+import { createGroup, createProgram, enrollInSchool, markAttendance } from '@clumera/module-schools';
 import { clubDayOf, clubTime, placeSlot } from '@clumera/agenda';
 import { cancelBooking, confirmPaidBookings, createBooking, createBookingSeries, createPublicBooking } from '@clumera/module-bookings';
 import { addTariff, createBlock, createVenue, setBookingRule, setVenueStatus } from '@clumera/module-facilities';
@@ -151,6 +152,7 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   await seedFinance(db, padron);
   await seedFacilities(db, padron);
   await seedAccess(db, padron);
+  await seedSchools(db, (await db.person.findFirstOrThrow({ where: { email: 'admin@lab.clumera.app' }, select: { id: true } })).id);
 
   return { people: await db.person.count() };
 }
@@ -362,6 +364,43 @@ async function seedFacilities(db: PrismaClient, padron: Record<string, string>):
   ok(await recordPayment(db, admin, { payerPersonId: guest.personId, chargeIds: [guest.chargeId!], method: 'transfer' }));
   await db.$transaction((tx) => confirmPaidBookings(tx, [guest.chargeId!]));
   ok(await createBookingSeries(db, admin, { venueId: p1, personId: padron['Valentina Rossi']!, weekday: 1, startMinute: 22 * 60, fromDay: today, untilDay: day(8 * 7), label: 'Pádel de los martes' }));
+}
+
+/**
+ * Escuelas de demo: natación infantil (Tomás, el hijo de la socia, en el grupo de martes y jueves;
+ * el de los sábados lleno y con lista de espera), escuela de hockey y funcional solo para socios.
+ * El profesor de Lab tiene el ámbito «natacion».
+ */
+async function seedSchools(db: PrismaClient, admin: string): Promise<void> {
+  const ok = <T>(r: { ok: true; value: T } | { ok: false; error: Error }): T => {
+    if (!r.ok) throw r.error;
+    return r.value;
+  };
+  const prog = async (input: Parameters<typeof createProgram>[2]) => ok(await createProgram(db, admin, input)).id;
+  const group = async (programId: string, name: string, days: number, time: number, capacity: number, place: string, teacherName: string) =>
+    ok(await createGroup(db, admin, programId, { name, days, startMinute: time, durationMinutes: 60, capacity, place, teacherName })).id;
+  const natacion = await prog({ slug: 'natacion', name: 'Natación infantil', activity: 'natacion', minAge: 6, maxAge: 12, membersOnly: false, memberFee: 1_500_000, guestFee: 2_000_000, description: 'Aprendizaje y técnica' });
+  const marJue = await group(natacion, 'Mar y Jue 18', 0b0001010, 18 * 60, 12, 'Pileta cubierta', 'Juan Acosta');
+  const sabados = await group(natacion, 'Sábados 10', 0b0100000, 10 * 60, 2, 'Pileta cubierta', 'Juan Acosta');
+  const hockey = await prog({ slug: 'escuela-hockey', name: 'Escuela de hockey', activity: 'hockey', minAge: 8, maxAge: 14, membersOnly: false, memberFee: 1_200_000, guestFee: 1_600_000 });
+  await group(hockey, 'Sub 12', 0b0000101, 17 * 60, 20, 'Cancha sintética', 'Laura Ríos');
+  const funcional = await prog({ slug: 'funcional', name: 'Funcional adultos', activity: 'funcional', minAge: 18, maxAge: null, membersOnly: true, memberFee: 900_000, guestFee: 900_000 });
+  await group(funcional, 'Mañana', 0b0010101, 8 * 60, 15, 'Gimnasio', 'Sol Vera');
+
+  const tomas = (await db.person.findFirstOrThrow({ where: { firstName: 'Tomás', lastName: 'Fernández' }, select: { id: true } })).id;
+  ok(await enrollInSchool(db, admin, { groupId: marJue, personId: tomas }));
+  const kids: string[] = [];
+  for (const [firstName, lastName, birth] of [['Emma', 'Díaz', '2016-04-02'], ['Bruno', 'Lagos', '2017-08-19'], ['Pilar', 'Núñez', '2018-01-23']] as const) {
+    const id = (await db.person.create({ data: { firstName, lastName, birthDate: new Date(birth) } })).id;
+    kids.push(id);
+    ok(await enrollInSchool(db, admin, { groupId: sabados, personId: id }));
+  }
+  ok(await enrollInSchool(db, admin, { groupId: marJue, personId: kids[0]! }));
+  // Asistencia de la última clase del grupo de martes y jueves.
+  const last = new Date(Date.now() - 3 * 3_600_000);
+  while (![1, 3].includes((last.getUTCDay() + 6) % 7)) last.setUTCDate(last.getUTCDate() - 1);
+  last.setUTCDate(last.getUTCDate() - 7);
+  ok(await markAttendance(db, admin, marJue, last.toISOString().slice(0, 10), [{ personId: tomas, mark: 'present' }, { personId: kids[0]!, mark: 'late' }]));
 }
 
 /**

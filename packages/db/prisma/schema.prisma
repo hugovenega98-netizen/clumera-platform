@@ -37,6 +37,8 @@ model Person {
   notifications       Notification[]
   credentials         Credential[]
   accessAttempts      AccessAttempt[]
+  enrollments         Enrollment[]
+  attendances         Attendance[]
   charges             Charge[]
   teamMemberships     TeamMember[]
   matchCallups        MatchCallup[]
@@ -1042,4 +1044,117 @@ model BookingSeries {
   bookings    Booking[]
 
   @@index([venueId])
+}
+
+// ───────────── Inscripciones (servicio compartido: Escuelas, Verano…) ─────────────
+
+enum ProgramStatus {
+  open
+  closed
+}
+
+enum FeeKind {
+  monthly
+  once
+}
+
+/// Una propuesta con inscripción: escuela de natación, colonia de verano, funcional adultos…
+model Program {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  /// Módulo dueño (schools, summer…): cada módulo ve y administra solo lo suyo.
+  module      String
+  name        String
+  description String?
+  /// Ámbito «actividad» de los profesores (rol con scope activity:<activity>).
+  activity    String
+  minAge      Int?
+  maxAge      Int?
+  membersOnly Boolean       @default(false)
+  feeKind     FeeKind       @default(monthly)
+  /// Centavos. Socio y no socio.
+  memberFee   Int
+  guestFee    Int
+  status      ProgramStatus @default(open)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  groups      Group[]
+
+  @@index([module, status])
+}
+
+/// Grupo de un programa: horario, espacio, profesor y cupo.
+model Group {
+  id              String       @id @default(cuid())
+  programId       String
+  program         Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name            String
+  /// Texto para la persona: «Lun y Mié 17:00».
+  schedule        String
+  /// Días (bits 0 = lunes … 6 = domingo), para la asistencia del día.
+  days            Int
+  startMinute     Int
+  durationMinutes Int
+  place           String?
+  teacherName     String?
+  capacity        Int
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  enrollments     Enrollment[]
+  attendances     Attendance[]
+
+  @@index([programId])
+}
+
+enum EnrollmentStatus {
+  confirmed
+  pending
+  waitlist
+  withdrawn
+}
+
+/// Inscripción de una persona a un grupo. Nunca se confirma por encima del cupo (bloqueo por grupo).
+model Enrollment {
+  id             String           @id @default(cuid())
+  groupId        String
+  group          Group            @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  personId       String
+  person         Person           @relation(fields: [personId], references: [id], onDelete: Restrict)
+  status         EnrollmentStatus
+  /// Orden en la lista de espera (solo status = waitlist).
+  waitPosition   Int?
+  memberRate     Boolean          @default(false)
+  fee            Int
+  chargeId       String?
+  enrolledById   String
+  confirmedAt    DateTime?
+  withdrawnAt    DateTime?
+  withdrawReason String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([groupId, status])
+  @@index([personId])
+}
+
+enum AttendanceMark {
+  present
+  absent
+  late
+}
+
+/// Asistencia del día de un grupo (la toma el profesor del programa).
+model Attendance {
+  id         String         @id @default(cuid())
+  groupId    String
+  group      Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  personId   String
+  person     Person         @relation(fields: [personId], references: [id], onDelete: Restrict)
+  /// aaaa-mm-dd (día del club).
+  day        String
+  mark       AttendanceMark
+  markedById String
+  markedAt   DateTime       @default(now())
+
+  @@unique([groupId, personId, day])
 }

@@ -23,6 +23,12 @@ describe('rutas de módulo con la licencia apagada', () => {
   const ctxA = <T extends Record<string, string>>(params: T) => ({ params: Promise.resolve(params) });
   const reqA = (path: string, method = 'GET', body?: unknown) => new Request(`http://localhost${path}`, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
   for (const [name, call] of [
+    ['inscribir en una escuela', async () => (await import('../app/api/m/schools/enrollments/route')).POST(reqA('/api/m/schools/enrollments', 'POST', { groupId: 'x', personId: 'x' }))],
+    ['baja de una escuela', async () => (await import('../app/api/m/schools/enrollments/[id]/withdraw/route')).POST(reqA('/api/m/schools/enrollments/x/withdraw', 'POST', { reason: 'xxxx' }), ctxA({ id: 'x' }))],
+    ['nueva propuesta', async () => (await import('../app/api/m/schools/programs/route')).POST(reqA('/api/m/schools/programs', 'POST', {}))],
+    ['nuevo grupo', async () => (await import('../app/api/m/schools/programs/[id]/groups/route')).POST(reqA('/api/m/schools/programs/x/groups', 'POST', {}), ctxA({ id: 'x' }))],
+    ['emitir cuotas de escuelas', async () => (await import('../app/api/m/schools/fees/route')).POST(reqA('/api/m/schools/fees', 'POST', { period: '2026-11' }))],
+    ['tomar asistencia', async () => (await import('../app/api/m/schools/groups/[id]/attendance/route')).POST(reqA('/api/m/schools/groups/x/attendance', 'POST', {}), ctxA({ id: 'x' }))],
     ['validar en un punto (Recepción)', async () => (await import('../app/api/m/access/check/route')).POST(reqA('/api/m/access/check', 'POST', { pointId: 'x', token: 'x' }))],
     ['excepción autorizada', async () => (await import('../app/api/m/access/attempts/[id]/override/route')).POST(reqA('/api/m/access/attempts/x/override', 'POST', { reason: 'xxxxx' }), ctxA({ id: 'x' }))],
     ['buscar persona en Recepción', async () => (await import('../app/api/m/access/people/route')).GET(reqA('/api/m/access/people?q=ana'))],
