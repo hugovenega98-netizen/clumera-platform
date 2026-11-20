@@ -1,7 +1,8 @@
 import { baseRoles, roleNames } from '@clumera/catalog';
 import type { PrismaClient } from '@clumera/db';
 import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } from '@clumera/finance';
-import { createAuthService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
+import { createAuthService, createCredentialService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
+import { checkAccess } from '@clumera/module-access';
 import { clubDayOf, clubTime, placeSlot } from '@clumera/agenda';
 import { cancelBooking, confirmPaidBookings, createBooking, createBookingSeries, createPublicBooking } from '@clumera/module-bookings';
 import { addTariff, createBlock, createVenue, setBookingRule, setVenueStatus } from '@clumera/module-facilities';
@@ -149,6 +150,7 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   await seedSports(db, padron);
   await seedFinance(db, padron);
   await seedFacilities(db, padron);
+  await seedAccess(db, padron);
 
   return { people: await db.person.count() };
 }
@@ -360,6 +362,28 @@ async function seedFacilities(db: PrismaClient, padron: Record<string, string>):
   ok(await recordPayment(db, admin, { payerPersonId: guest.personId, chargeIds: [guest.chargeId!], method: 'transfer' }));
   await db.$transaction((tx) => confirmPaidBookings(tx, [guest.chargeId!]));
   ok(await createBookingSeries(db, admin, { venueId: p1, personId: padron['Valentina Rossi']!, weekday: 1, startMinute: 22 * 60, fromDay: today, untilDay: day(8 * 7), label: 'Pádel de los martes' }));
+}
+
+/**
+ * Accesos de demo: entrada principal y pileta; credenciales válidas (carnets), vencidas (la
+ * suspendida), revocadas (Camila perdió el carnet) y de reserva (la de Martina Ruiz, sin cuenta);
+ * algunos intentos de hoy validados por Recepción.
+ */
+async function seedAccess(db: PrismaClient, padron: Record<string, string>): Promise<void> {
+  const main = await db.accessPoint.create({ data: { slug: 'principal', name: 'Acceso principal', sortOrder: 0 } });
+  await db.accessPoint.create({ data: { slug: 'pileta', name: 'Pileta', sortOrder: 1 } });
+  const creds = createCredentialService(db);
+  for (const name of ['Martina Gómez', 'Lucas Benítez', 'Valentina Rossi', 'Camila Torres', 'Julieta Méndez']) await creds.memberCard(padron[name]!);
+  const lost = await db.credential.findFirstOrThrow({ where: { personId: padron['Camila Torres']!, kind: 'member_card' } });
+  await creds.revoke(lost.id, 'Carnet extraviado');
+  const guest = await db.booking.findFirst({ where: { public: true, status: 'confirmed' }, include: { venue: { select: { name: true } } } });
+  if (guest) {
+    const at = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires' }).format(guest.startsAt).replace(',', '');
+    await creds.issueBookingCredential({ bookingId: guest.id, personId: guest.personId, validFrom: new Date(guest.startsAt.getTime() - 30 * 60_000), validTo: guest.endsAt, label: `Reserva ${guest.venue.name} · ${at}` });
+  }
+  const rosa = await db.userAccount.findUnique({ where: { login: 'recepcion@lab.clumera.app' }, select: { personId: true } });
+  if (!rosa) return;
+  for (const name of ['Lucas Benítez', 'Valentina Rossi', 'Julieta Méndez', 'Camila Torres']) await checkAccess(db, creds, rosa.personId, { pointId: main.id, personId: padron[name]! });
 }
 
 export async function wipeLab(db: PrismaClient): Promise<void> {

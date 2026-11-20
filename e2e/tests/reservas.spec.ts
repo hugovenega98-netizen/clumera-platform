@@ -213,7 +213,24 @@ test('público: reserva sin cuenta con seña, paga, recibe el enlace por correo 
   const card = page.getByRole('region', { name: /^Reserva F5-1/ });
   await expect(card.getByText('Confirmada')).toBeVisible();
   await expect(card.getByText('$ 16.800')).toBeVisible(); // saldo en el club
+  // QR temporal para entrar (sin datos personales): vale desde media hora antes del turno.
+  const qr = page.getByRole('img', { name: 'Código QR de la reserva' });
+  await expect
+    .poll(async () => {
+      await page.reload();
+      return qr.count();
+    })
+    .toBe(1);
+  await expect(page.getByText(/Mostralo en la entrada\. Vale desde el .+ a las 20:30/)).toBeVisible();
+  const qrToken = (await qr.getAttribute('data-token'))!;
+  expect(qrToken).toMatch(/^C1\./);
+  expect(qrToken).not.toMatch(/Julia|Invitada|example/);
   await expectNoHorizontalScroll(page);
+  // Recepción: faltan días para el turno, todavía no entra.
+  await loginAs(page, 'Recepción');
+  const point = sql(`SELECT id FROM "AccessPoint" WHERE slug = 'principal'`);
+  expect(await (await post(page, '/api/m/access/check', { pointId: point, token: qrToken })).json()).toMatchObject({ granted: false, reason: 'no_habilitada', person: { firstName: 'Julia' } });
+  await page.context().clearCookies();
   // Un enlace adulterado no abre nada.
   expect((await page.goto(`${LAB_URL}${link.slice(0, -2)}xx`))!.status()).toBe(404);
 
@@ -222,6 +239,13 @@ test('público: reserva sin cuenta con seña, paga, recibe el enlace por correo 
   await card.getByRole('button', { name: 'Sí, cancelar' }).click();
   await expect(card.getByText('Cancelada')).toBeVisible();
   await expect(card.getByText('El club te devuelve $ 7.200.')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Código QR de la reserva' })).toHaveCount(0);
+
+  // En Recepción: la reserva cancelada revoca su QR (caso B también para reservas).
+  await loginAs(page, 'Recepción');
+  await expect
+    .poll(async () => (await (await post(page, '/api/m/access/check', { pointId: point, token: qrToken })).json()).reason)
+    .toBe('revocada');
 
   // Con sesión, /reservar lleva al turnero del club (tarifa socio).
   await loginAs(page, 'Socio');

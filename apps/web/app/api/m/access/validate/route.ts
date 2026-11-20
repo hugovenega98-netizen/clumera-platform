@@ -1,33 +1,31 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { authorize } from "@/lib/authz";
-import { errorResponse, parseJson } from "@/lib/http";
-import { requireModule } from "@/lib/require-module";
-import { getCredentials } from "@/lib/services";
-import { getCurrentSession } from "@/lib/session";
+import { checkAccess, listAccessPoints } from '@clumera/module-access';
+import { after, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { guardAccess } from '@/lib/access';
+import { deliverNow } from '@/lib/consumers';
+import { getPrisma } from '@/lib/db';
+import { domainErrorResponse, errorResponse, parseJson } from '@/lib/http';
+import { getCredentials } from '@/lib/services';
 
 /**
- * Validación de un QR en un punto de acceso (módulo Accesos). Responde validez, motivo y el nombre;
- * nunca deuda ni salud. La pantalla de Recepción llega en el Hito B.
+ * Validación de un QR (forma de Hito A, para lectores e integraciones): `{ valid, reason, message,
+ * person }`. Pasa por Accesos, así que el intento queda registrado en el punto indicado o en el
+ * primero activo. Nunca deuda ni salud. La pantalla de Recepción usa `/api/m/access/check`.
  */
 export async function POST(request: Request) {
-  const denied = await requireModule("access");
-  if (denied) return denied;
-  const session = await getCurrentSession();
-  if (!session)
-    return errorResponse("unauthenticated", "Ingresá para continuar", 401);
-  if (!(await authorize(session.personId, "access:validate")).allowed)
-    return errorResponse(
-      "forbidden",
-      "No tenés permiso para validar accesos",
-      403,
-    );
-  const body = await parseJson(
-    request,
-    z.object({ token: z.string().min(1).max(200) }),
-  );
+  const g = await guardAccess('access:validate');
+  if (!g.ok) return g.response;
+  const body = await parseJson(request, z.object({ token: z.string().min(1).max(200), pointId: z.string().min(1).max(64).optional() }));
   if (!body.ok) return body.response;
-  return NextResponse.json(await getCredentials().validate(body.data.token), {
-    headers: { "cache-control": "no-store" },
-  });
+  const db = getPrisma();
+  const pointId = body.data.pointId ?? (await listAccessPoints(db))[0]?.id;
+  if (!pointId) return errorResponse('conflict', 'El club todavía no tiene puntos de acceso', 409);
+  const r = await checkAccess(db, getCredentials(), g.session.personId, { pointId, token: body.data.token });
+  if (!r.ok) return domainErrorResponse(r.error);
+  after(() => deliverNow(db));
+  const v = r.value;
+  return NextResponse.json(
+    { valid: v.granted, reason: v.reason ?? undefined, message: v.detail, detail: v.detail, person: v.person ?? undefined, attemptId: v.attemptId },
+    { headers: { 'cache-control': 'no-store' } },
+  );
 }

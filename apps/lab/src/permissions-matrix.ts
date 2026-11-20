@@ -46,6 +46,8 @@ export const PERMISSION_CASES: PermissionCase[] = [
   { id: 'match-control-hockey', label: 'Operar la mesa de control de hockey', action: 'sports:match.control', resource: { scopes: [{ type: 'sport', id: 'hockey' }, { type: 'team', id: 'hockey-damas' }] }, allowed: ['superadmin'] },
   { id: 'sports-manage', label: 'Administrar deportes, equipos y planteles', action: 'sports:manage', allowed: ['superadmin'] },
   { id: 'access', label: 'Validar accesos en la entrada', action: 'access:validate', allowed: ['superadmin', 'recepcion'] },
+  { id: 'access-override', label: 'Autorizar una excepción de acceso (con motivo)', action: 'access:override', allowed: ['superadmin', 'recepcion'] },
+  { id: 'access-log', label: 'Ver los últimos intentos del punto de acceso', action: 'access:log.view', allowed: ['superadmin', 'recepcion'] },
   { id: 'venues', label: 'Administrar instalaciones (espacios, reglas y tarifas)', action: 'facilities:venue.manage', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },
   { id: 'agenda', label: 'Ver la agenda central', action: 'facilities:venue.view', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },
   { id: 'blocks', label: 'Bloquear un espacio (mantenimiento)', action: 'facilities:block.manage', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },

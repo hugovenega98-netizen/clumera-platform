@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { clientConfig } from '@/lib/client-config';
 import { getPrisma } from '@/lib/db';
 import { getLicenseState } from '@/lib/license';
+import { ADMIN_ENTRY } from '@/lib/admin';
 import { permissionChecker } from '@/lib/authz';
 import { navigationFor } from '@/lib/navigation';
 import { Icon, NAV_ICON } from './icons';
@@ -36,7 +37,7 @@ async function adminNav(personId: string): Promise<NavLink[]> {
 
 /** Dock del teléfono: Inicio + hasta tres secciones principales + Más. */
 function dockItems(nav: NavLink[], home: string): NavLink[] {
-  const preferred = ['identity:card', 'bookings:book', 'finance:payments', 'sports:my-sports', 'identity:people', 'finance:accounting', 'facilities:venues', 'bookings:manage'];
+  const preferred = ['identity:card', 'bookings:book', 'finance:payments', 'sports:my-sports', 'identity:people', 'finance:accounting', 'facilities:venues', 'bookings:manage', 'access:reception-admin'];
   const main = preferred.map((k) => nav.find((n) => n.key === k)).filter((n): n is NavLink => Boolean(n)).slice(0, 3);
   return [{ key: 'home', href: home, label: 'Inicio', icon: 'home' }, ...main, { key: 'more', href: '/espacios', label: 'Más', icon: 'more' }];
 }
@@ -63,8 +64,11 @@ export async function AppShell({
   space?: 'member' | 'admin';
 }) {
   const admin = space === 'admin';
-  const home = admin ? '/admin' : '/';
-  const nav = admin ? await adminNav(session.personId) : await memberNav();
+  const allNav = admin ? await adminNav(session.personId) : await memberNav();
+  // Quien no entra al inicio institucional (Recepción) tiene como inicio su primera área.
+  const can = admin ? await permissionChecker(session.personId) : null;
+  const home = !admin ? '/' : ADMIN_ENTRY.some((p) => can!(p)) ? '/admin' : (allNav[0]?.href ?? '/');
+  const nav = allNav.filter((n) => n.href !== home);
   const unread = await getPrisma().notification.count({ where: { personId: session.personId, readAt: null } });
   const aria = (href: string) => (isCurrent(href, current) ? { 'aria-current': 'page' as const } : {});
   return (
@@ -77,7 +81,7 @@ export async function AppShell({
         <nav className="cx-side-nav" aria-label={admin ? 'Áreas de la institución' : 'Secciones'}>
           <Link href={home} {...aria(home)}>
             <Icon name="home" />
-            {admin ? 'Inicio institucional' : 'Inicio'}
+            {home === '/admin' ? 'Inicio institucional' : 'Inicio'}
           </Link>
           {nav.map((n) => (
             <Link key={n.key} href={n.href} {...aria(n.href)}>

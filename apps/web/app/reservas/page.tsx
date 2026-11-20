@@ -7,9 +7,11 @@ import Link from 'next/link';
 import { forbidden } from 'next/navigation';
 import { AppShell } from '@/components/AppShell';
 import { BookingActions } from '@/components/BookingForms';
+import { CardQr } from '@/components/CardQr';
 import { permissionChecker } from '@/lib/authz';
 import { sweepHolds } from '@/lib/bookings-access';
 import { getPrisma } from '@/lib/db';
+import { getCredentials } from '@/lib/services';
 import { requireModulePage } from '@/lib/require-module';
 import { requireSession } from '@/lib/session';
 
@@ -44,6 +46,12 @@ export default async function BookingsPage({ searchParams }: { searchParams: Sea
   const [venues, mine, member] = await Promise.all([bookableVenues(db), myBookings(db, [session.personId], now), isMember(db, session.personId, now)]);
   const upcoming = mine.filter((b) => b.status === 'held' || b.status === 'conflict' || (b.status === 'confirmed' && b.endsAt > now));
   const mineView = q.vista === 'mias';
+  // Sin membresía no hay carnet: cada reserva confirmada trae su QR para la entrada.
+  const qrs = new Map(
+    mineView && !member
+      ? await Promise.all(upcoming.filter((b) => b.status === 'confirmed').map(async (b) => [b.id, await getCredentials().bookingQr(b.id)] as const))
+      : [],
+  );
 
   const groups = [...new Set(venues.map((v) => v.group))];
   const group = groups.includes(q.grupo ?? '') ? q.grupo! : (venues.find((v) => v.id === q.espacio)?.group ?? groups[0]);
@@ -88,6 +96,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Sea
               {b.status === 'held' && b.holdExpiresAt ? <p className="cx-muted">Retenido hasta las {new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' }).format(b.holdExpiresAt)}.</p> : null}
               {b.refundDue ? <p>El club te devuelve {formatMoney(b.refundDue)}.</p> : null}
               {b.status === 'confirmed' && !b.cancellable && b.startsAt > now ? <p className="cx-muted">Para cancelar con menos de {b.cancelHours} h, comunicate con el club.</p> : null}
+              {qrs.get(b.id) ? <BookingQr id={b.id} qr={qrs.get(b.id)!} /> : null}
               <BookingActions id={b.id} chargeId={b.chargeId} payable={b.status === 'held' && b.pending > 0} cancellable={b.cancellable} title={b.title} />
             </Card>
           ))}
@@ -154,5 +163,17 @@ export default async function BookingsPage({ searchParams }: { searchParams: Sea
         </div>
       )}
     </AppShell>
+  );
+}
+
+const hhmmClub = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Argentina/Buenos_Aires' });
+
+/** QR temporal de la reserva: lo valida Recepción desde media hora antes del turno. */
+function BookingQr({ id, qr }: { id: string; qr: { token: string; expiresAt: Date; validFrom: Date } }) {
+  return (
+    <details className="booking-qr">
+      <summary>QR para entrar · vale desde {hhmmClub.format(qr.validFrom)}</summary>
+      <CardQr src={`/api/m/bookings/${id}/qr`} label="Código QR de la reserva" initial={{ token: qr.token, expiresAt: qr.expiresAt.toISOString() }} />
+    </details>
   );
 }

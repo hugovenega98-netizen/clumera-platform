@@ -43,4 +43,26 @@ Lab: Fútbol 5 (F5-1, F5-2) se reserva sin cuenta con seña 30%; hay una reserva
 Límites conocidos: la reserva pública necesita Mercado Pago configurado y la clave de la instalación
 (si falta, responde 503). Los reintegros quedan registrados, no se devuelven solos por Mercado Pago.
 
-## Tramo 3 · Accesos con Recepción
+## Tramo 3 · Accesos con Recepción (entregado)
+
+| Qué | Dónde |
+| --- | --- |
+| Puntos de acceso (entrada principal, pileta…) y registro de cada intento: permitido o denegado, motivo, lo que vio Recepción, cómo se validó (QR, búsqueda o excepción) y quién | `AccessPoint`, `AccessAttempt`, `packages/modules/access` |
+| Validar en un punto: QR escaneado con la cámara (navegadores con lector de códigos), tipeado o de un lector USB, o la persona buscada por nombre, DNI o N° de socio. Responde validez, motivo y nombre; nunca deuda, salud ni ids internos | `checkAccess`, `POST /api/m/access/check`, `GET /api/m/access/people` |
+| Caso B: una credencial revocada no entra (por QR ni por búsqueda); el código ajeno o adulterado también queda registrado | `packages/identity/src/credentials.ts` |
+| Excepción autorizada sobre un rechazo de una persona identificada: con motivo, una sola vez, dentro de 15 minutos, auditada | `authorizeException`, `POST /api/m/access/attempts/<id>/override` |
+| QR de las reservas: al confirmarse, la reserva tiene una credencial que vale desde 30 min antes hasta que termina el turno; cancelada, liberada o con pago tardío, se revoca. Se ve en el enlace de la reserva sin cuenta y, para quien no es socio, en «Mis reservas» | consumidor `access:booking-credential`, `GET /api/m/bookings/<id>/qr`, `GET /api/m/bookings/public/<token>/qr` |
+| Pantalla de Recepción: punto de acceso, cámara, código, búsqueda, resultado grande, ingresos y rechazos de hoy, últimos intentos | `/recepcion` |
+
+Quién: `access:validate`, `access:override` y `access:log.view` (Recepción y Superadmin; casos
+`access`, `access-override` y `access-log` de la matriz). Recepción entra directo a `/recepcion`.
+La validación de Hito A (`POST /api/m/access/validate`) también registra el intento.
+
+Lab: puntos «Acceso principal» y «Pileta»; carnets vigentes, la membresía suspendida de Julieta
+Méndez, el carnet revocado de Camila Torres, la credencial de la reserva de Martina Ruiz y algunos
+intentos de hoy.
+
+Límites conocidos: sin validación sin conexión (fuera de alcance de la primera versión); los
+contadores son de intentos de hoy, no de ocupación (la ocupación de pileta y colonia llega con
+Verano); los puntos de acceso se cargan por seed (su administración, `access:point.manage`, queda
+para más adelante).

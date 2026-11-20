@@ -4,12 +4,14 @@ import { Card, Notice } from '@clumera/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { CardQr } from '@/components/CardQr';
 import { GuestBookingActions } from '@/components/PublicBookingForms';
 import { PublicShell } from '@/components/PublicShell';
 import { sweepHolds } from '@/lib/bookings-access';
 import { getPrisma } from '@/lib/db';
 import { bookingFromToken } from '@/lib/public-booking';
 import { requireModulePage } from '@/lib/require-module';
+import { getCredentials } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Tu reserva', robots: { index: false } };
 export const dynamic = 'force-dynamic';
@@ -38,6 +40,8 @@ export default async function GuestBookingPage({ params, searchParams }: { param
   const b = await bookingView(getPrisma(), id, now);
   if (!b?.public) notFound();
   const status = STATUS[b.status]!;
+  const qr = b.status === 'confirmed' && b.endsAt > now ? await getCredentials().bookingQr(b.id) : null;
+  const day = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' });
   return (
     <PublicShell next="/reservas">
       <h1>Tu reserva</h1>
@@ -75,6 +79,20 @@ export default async function GuestBookingPage({ params, searchParams }: { param
           {b.status === 'confirmed' && !b.cancellable && b.startsAt > now ? <p className="cx-muted">Para cancelar con menos de {b.cancelHours} h, comunicate con el club.</p> : null}
           <GuestBookingActions token={token} payable={b.status === 'held' && b.pending > 0} cancellable={b.cancellable} title={b.title} />
         </Card>
+        {b.status === 'confirmed' && b.endsAt > now ? (
+          <Card title="QR para entrar">
+            {qr ? (
+              <>
+                <CardQr src={`/api/m/bookings/public/${token}/qr`} label="Código QR de la reserva" initial={{ token: qr.token, expiresAt: qr.expiresAt.toISOString() }} />
+                <p className="cx-muted">
+                  Mostralo en la entrada. Vale desde el {day.format(qr.validFrom)} a las {hhmm.format(qr.validFrom)} hasta que termina el turno.
+                </p>
+              </>
+            ) : (
+              <p className="cx-muted">Estamos generando el QR para entrar: recargá en unos segundos.</p>
+            )}
+          </Card>
+        ) : null}
         <Card title="¿Querés otro turno?">
           <p className="cx-muted">Guardá este enlace: con él ves, pagás o cancelás esta reserva.</p>
           <Link className="cx-btn cx-btn--secondary" href="/reservar">

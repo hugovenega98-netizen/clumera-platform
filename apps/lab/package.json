@@ -23,6 +23,7 @@
     "@clumera/identity": "*",
     "@clumera/kernel": "*",
     "@clumera/mail": "*",
+    "@clumera/module-access": "*",
     "@clumera/module-bookings": "*",
     "@clumera/module-facilities": "*",
     "@clumera/sports": "*",
