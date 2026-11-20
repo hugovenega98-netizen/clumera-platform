@@ -47,6 +47,9 @@ export default async function BookingsAdminPage({ searchParams }: { searchParams
     <AppShell session={session} current="/reservas/gestion" title="Reservas del día" space="admin">
       <header className="agenda-bar">
         <h1>Reservas del día</h1>
+        <Link className="cx-btn cx-btn--secondary" href="/reservas/fijas">
+          Reservas fijas
+        </Link>
         <nav className="day-nav" aria-label="Día">
           <Link className="cx-btn cx-btn--secondary" href={`/reservas/gestion?dia=${plus(day, -1)}`} aria-label="Día anterior">
             ‹
@@ -68,10 +71,16 @@ export default async function BookingsAdminPage({ searchParams }: { searchParams
                   <h2 className="cx-card__title" style={{ margin: 0 }}>
                     {title}
                   </h2>
-                  <span className={`cx-tag ${STATUS[b.status]?.tone ?? ''}`}>{STATUS[b.status]?.label}</span>
+                  <span className="tag-row">
+                    {b.public ? <span className="cx-tag">Sin cuenta</span> : null}
+                    {b.seriesId ? <span className="cx-tag">Fija</span> : null}
+                    <span className={`cx-tag ${STATUS[b.status]?.tone ?? ''}`}>{STATUS[b.status]?.label}</span>
+                  </span>
                 </div>
                 <p className="cx-muted">
-                  {b.person.firstName} {b.person.lastName} · {formatMoney(b.price)} · {PAY[b.payMode]}
+                  {b.person.firstName} {b.person.lastName}
+                  {/* Quien reservó sin cuenta no recibe avisos de la app: el encargado ve el celular para contactarlo. */}
+                  {b.public && b.person.phone ? ` · ${b.person.phone}` : ''} · {formatMoney(b.price)} · {PAY[b.payMode]}
                   {b.refundDue ? ` · reintegro ${formatMoney(b.refundDue)}` : ''}
                 </p>
                 <BookingActions id={b.id} chargeId={null} payable={false} cancellable={(b.status === 'confirmed' || b.status === 'held') && b.startsAt > now} title={title} manager />

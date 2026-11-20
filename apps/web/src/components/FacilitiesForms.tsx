@@ -186,12 +186,13 @@ export interface RuleView {
   cancelHours: number;
   depositPercent: number;
   payAtClub: boolean;
+  publicBooking: boolean;
 }
 
 /** Reglas de reserva: turnos, horario, anticipación, retención, cancelación y seña. */
 export function RuleForm({ venueId, venueName, rule }: { venueId: string; venueName: string; rule: RuleView | null }) {
   const router = useRouter();
-  const r0 = rule ?? { slotMinutes: 60, openFrom: 480, openTo: 1380, maxAdvanceDays: 14, holdMinutes: 10, cancelHours: 24, depositPercent: 50, payAtClub: false };
+  const r0 = rule ?? { slotMinutes: 60, openFrom: 480, openTo: 1380, maxAdvanceDays: 14, holdMinutes: 10, cancelHours: 24, depositPercent: 50, payAtClub: false, publicBooking: false };
   const [v, setV] = useState({ ...r0, from: toHhmm(r0.openFrom), to: toHhmm(r0.openTo) });
   const [msg, setMsg] = useState<Msg>(null);
   const num = (k: keyof RuleView) => (e: { target: { value: string } }) => setV({ ...v, [k]: Number(e.target.value) });
@@ -214,6 +215,10 @@ export function RuleForm({ venueId, venueName, rule }: { venueId: string; venueN
       <label className="check-row">
         <input type="checkbox" checked={v.payAtClub} onChange={(e) => setV({ ...v, payAtClub: e.target.checked })} />
         Permitir pagar en el club
+      </label>
+      <label className="check-row">
+        <input type="checkbox" checked={v.publicBooking} onChange={(e) => setV({ ...v, publicBooking: e.target.checked })} />
+        Reserva sin cuenta (público, tarifa general y pago online)
       </label>
       <div className="span-2 cx-stack">
         {msg ? <Notice tone={msg.tone}>{msg.text}</Notice> : null}

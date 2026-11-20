@@ -6,6 +6,7 @@ vi.mock('server-only', () => ({}));
 vi.mock('@/lib/license', () => ({ getLicenseState: async () => ({ enabled: catalog.resolveEnabled([]) }) }));
 vi.mock('@/lib/services', () => ({ getCredentials: () => { throw new Error('no debería llegar'); } }));
 vi.mock('@/lib/authz', () => ({ authorize: vi.fn() }));
+vi.mock('@/lib/client-config', () => ({ clientConfig: { identity: { displayName: 'Club' } } }));
 const session = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/session', () => ({ getCurrentSession: session }));
 
@@ -22,11 +23,16 @@ describe('rutas de módulo con la licencia apagada', () => {
 
 describe('Reservas e Instalaciones con la licencia apagada', () => {
   const req = (url: string, method = 'GET', body?: unknown) => new Request(`http://localhost${url}`, { method, body: body === undefined ? undefined : JSON.stringify(body), headers: { 'content-type': 'application/json' } });
-  const ctx = (params: { id: string }) => ({ params: Promise.resolve(params) });
+  const ctx = <T extends Record<string, string>>(params: T) => ({ params: Promise.resolve(params) });
   const cases: Array<[string, () => Promise<Response>]> = [
     ['turnos de un día', async () => (await import('../app/api/m/bookings/availability/route')).GET(req('/api/m/bookings/availability?espacio=x&dia=2026-11-21'))],
     ['reservar', async () => (await import('../app/api/m/bookings/route')).POST(req('/api/m/bookings', 'POST', {}))],
     ['cancelar una reserva', async () => (await import('../app/api/m/bookings/[id]/cancel/route')).POST(req('/api/m/bookings/x/cancel', 'POST', {}), ctx({ id: 'x' }))],
+    ['reservar sin cuenta', async () => (await import('../app/api/m/bookings/public/route')).POST(req('/api/m/bookings/public', 'POST', {}))],
+    ['pagar con el enlace de la reserva', async () => (await import('../app/api/m/bookings/public/[token]/pay/route')).POST(req('/api/m/bookings/public/x.y/pay', 'POST', {}), ctx({ token: 'x.y' }))],
+    ['cancelar con el enlace de la reserva', async () => (await import('../app/api/m/bookings/public/[token]/cancel/route')).POST(req('/api/m/bookings/public/x.y/cancel', 'POST', {}), ctx({ token: 'x.y' }))],
+    ['reserva fija', async () => (await import('../app/api/m/bookings/series/route')).POST(req('/api/m/bookings/series', 'POST', {}))],
+    ['cancelar reserva fija', async () => (await import('../app/api/m/bookings/series/[id]/cancel/route')).POST(req('/api/m/bookings/series/x/cancel', 'POST', {}), ctx({ id: 'x' }))],
     ['alta de espacio', async () => (await import('../app/api/m/facilities/venues/route')).POST(req('/api/m/facilities/venues', 'POST', {}))],
     ['estado de un espacio', async () => (await import('../app/api/m/facilities/venues/[id]/route')).PATCH(req('/api/m/facilities/venues/x', 'PATCH', {}), ctx({ id: 'x' }))],
     ['reglas', async () => (await import('../app/api/m/facilities/venues/[id]/rule/route')).PUT(req('/api/m/facilities/venues/x/rule', 'PUT', {}), ctx({ id: 'x' }))],

@@ -1,9 +1,10 @@
 import 'server-only';
 import { processOutbox, type OutboxConsumer, type PrismaClient } from '@clumera/db';
 import { formatMoney, receiptNumber } from '@clumera/finance';
-import { bookingTitle, confirmPaidBookings } from '@clumera/module-bookings';
+import { bookingTitle, confirmPaidBookings, SERIES_CANCEL_REASON } from '@clumera/module-bookings';
 import { deliverPendingPush, notify, vapidFromEnv } from '@clumera/notifications';
 import { eventNotice, matchAudience } from '@clumera/sports';
+import { mailGuestBooking } from './public-booking';
 
 /**
  * Consumidores del outbox de la app: cada módulo reacciona a eventos de otros sin importarlos.
@@ -11,7 +12,8 @@ import { eventNotice, matchAudience } from '@clumera/sports';
  * Deportes → Avisos: cada incidencia a convocados, sus responsables y seguidores; y un aviso genérico
  * (sin datos clínicos) cuando Médico/Kine actualiza un seguimiento.
  * Finanzas → Reservas: un pago acreditado confirma la reserva del cargo (o la deja en conflicto si
- * el turno ya lo tomó otro). Reservas → Avisos: confirmada, liberada por falta de pago, cancelada por el club.
+ * el turno ya lo tomó otro). Reservas → Avisos: confirmada, liberada por falta de pago, cancelada por el club
+ * (y por correo a quien reservó sin cuenta).
  */
 export const consumers: OutboxConsumer[] = [
   {
@@ -29,8 +31,10 @@ export const consumers: OutboxConsumer[] = [
       const p = event.payload as { bookingId: string; personId: string; byManager?: boolean };
       // La persona que cancela no necesita aviso: solo cuando cancela el club.
       if (event.type === 'booking.cancelled' && !p.byManager) return;
-      const b = await tx.booking.findUnique({ where: { id: p.bookingId }, select: { startsAt: true, venue: { select: { name: true } } } });
+      const b = await tx.booking.findUnique({ where: { id: p.bookingId }, select: { startsAt: true, seriesId: true, cancelReason: true, venue: { select: { name: true } } } });
       if (!b) return;
+      // Las semanas de una reserva fija se avisan juntas al cargarla o cancelarla, no una por una.
+      if (b.seriesId && (event.type === 'booking.confirmed' || b.cancelReason === SERIES_CANCEL_REASON)) return;
       const title = bookingTitle(b.venue.name, b.startsAt);
       const text: Record<string, [string, string]> = {
         'booking.confirmed': ['Reserva confirmada', title],
@@ -40,6 +44,16 @@ export const consumers: OutboxConsumer[] = [
       };
       const [t, body] = text[event.type]!;
       await notify(tx, { personIds: [p.personId], eventKey: `${event.type}:${p.bookingId}`, source: 'bookings', title: t, body, url: '/reservas?vista=mias' });
+    },
+  },
+  {
+    // Quien reservó sin cuenta no tiene bandeja ni push: se le escribe por correo con su enlace.
+    name: 'mail:public-booking',
+    types: ['booking.confirmed', 'booking.released', 'booking.conflict', 'booking.cancelled'],
+    async handle(event, tx) {
+      const p = event.payload as { bookingId: string; byManager?: boolean };
+      if (event.type === 'booking.cancelled' && !p.byManager) return;
+      await mailGuestBooking(tx, p.bookingId, event.type as 'booking.confirmed');
     },
   },
   {
