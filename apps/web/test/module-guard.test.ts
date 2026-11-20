@@ -20,6 +20,9 @@ describe('barrera de módulos', () => {
     expect(decideModuleAccess('/escuelas', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'schools' });
     expect(decideModuleAccess('/escuelas/asistencia', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'schools' });
     expect(decideModuleAccess('/admin/escuelas', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'schools' });
+    // La página pública del torneo también es del módulo: sin licencia no se publica.
+    expect(decideModuleAccess('/torneos/relampago', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'tournaments' });
+    expect(decideModuleAccess('/admin/torneos/relampago', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'tournaments' });
     expect(decideModuleAccess('/recepcion', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'access' });
     expect(decideModuleAccess('/api/m/access/check', catalog, coreOnly)).toEqual({ action: 'deny-api', moduleId: 'access' });
     expect(decideModuleAccess('/reservar', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'bookings' });

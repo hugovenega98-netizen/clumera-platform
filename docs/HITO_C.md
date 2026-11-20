@@ -52,4 +52,32 @@ de alta queda para el siguiente tramo); el profesor de colonia todavía no ve la
 asistencia; sin firma digital (la autorización firmada se sube como archivo); pases de pileta: siguiente
 tramo.
 
-## Tramo 3 · Torneos con página pública (caso D)
+## Tramo 3 · Torneos con página pública: caso D (entregado)
+
+| Qué | Dónde |
+| --- | --- |
+| Torneo relámpago: modalidad del catálogo de Deportes, cupo, zonas (1 o 2), clasificados, inscripción por equipo, día, primer partido, minutos por partido y canchas | `packages/modules/tournaments`, `Tournament`, `/admin/torneos`, `POST /api/m/tournaments` |
+| Inscripción: quien inscribe es el capitán y recibe el cargo (concepto `torneo`) en Pagos; el pago confirma el equipo (consumidor `tournaments:payment-approved`); cupo y nombre único con bloqueo; baja antes del sorteo anula el cargo impago | `/torneos`, `POST /api/m/tournaments/<id>/teams`, `POST /api/m/tournaments/teams/<id>/withdraw` |
+| Sorteo: zonas parejas y fixture todos contra todos (método del círculo) con horarios y canchas: nadie juega dos partidos a la vez y nunca hay más partidos que canchas; si el torneo usa espacios de la agenda central, los ocupa con prioridad de torneo | `drawAndSchedule`, `POST /api/m/tournaments/<id>/draw` |
+| Resultados con las reglas del deporte (fútbol 3-1-0, rugby 4-2-0, vóley y básquet sin empate). Tabla calculada (nunca guardada): puntos, diferencia, goles a favor, partido entre ellos y nombre | `logic.ts`, `zoneTables`, `PUT /api/m/tournaments/matches/<id>/result` |
+| Corrección oficial: pide motivo, sube la versión del partido y queda en auditoría. Con la eliminación armada y sin jugar, se anula para regenerarla con la tabla corregida; con la llave en juego, la fase de grupos ya no se corrige | `recordResult` |
+| Eliminación: final directa (1 zona) o semis cruzadas (1.° A con 2.° B); un empate pide quién pasa por penales; con las dos semis jugadas se arman final y tercer puesto; con la final, campeón y podio | `generateKnockout`, `POST /api/m/tournaments/<id>/knockout` |
+| Página pública sin sesión: último resultado, próximos partidos, posiciones, llave y campeón. Sin capitanes, pagos ni datos de personas | `/torneos/<slug>`, `tournamentView` |
+
+Quién: `tournaments:register` (socios, y Organización), `tournaments:manage` y
+`tournaments:result.record` (Organizador; Superadmin). Casos `tournament-register`, `tournaments` y
+`tournament-result` de la matriz; recorrido por rol en `e2e/tests/torneos.spec.ts`. Todas las rutas de
+API llaman a `requireModule('tournaments')`; la página pública también es del módulo (sin licencia, no se
+publica).
+
+Lab: «Relámpago de Verano» (Fútbol 5, 8 equipos, el próximo sábado) sorteado y con la primera ronda
+jugada; «Vóley de Primavera» con la inscripción abierta ($ 15.000 por equipo) para que el socio inscriba
+el suyo. Los equipos sembrados no generan cargos (no cambian Finanzas).
+
+Límites conocidos: un solo día de juego por torneo (fechas en varios sábados, árbitros, sanciones,
+planteles por equipo y estadísticas por jugador quedan para Eventos/Deportes); los resultados los carga
+Organización (todavía no desde Mesa de control); el torneo no se edita después de creado.
+
+## Tramo 4 · Pases de pileta
+
+Siguiente: pases de pileta por temporada (vigencia separada de la cuota social) y su validación en Recepción.

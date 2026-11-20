@@ -18,6 +18,7 @@ export const baseRoles = {
     'bookings:book.view:self',
     'schools:enroll',
     'schools:enrollment.view:self',
+    'tournaments:register',
     'summer:pass.buy',
     'summer:pass.view:self',
     'summer:camp.enroll',
