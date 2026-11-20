@@ -25,6 +25,7 @@
     "@clumera/mail": "*",
     "@clumera/module-access": "*",
     "@clumera/module-bookings": "*",
+    "@clumera/module-schools": "*",
     "@clumera/module-facilities": "*",
     "@clumera/notifications": "*",
     "@clumera/sports": "*",

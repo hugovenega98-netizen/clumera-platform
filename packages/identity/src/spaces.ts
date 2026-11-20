@@ -25,7 +25,7 @@ const ROLE_SPACE: Record<string, { label: string; home: string }> = {
   reception: { label: 'Recepción', home: '/recepcion' },
   facility_manager: { label: 'Instalaciones', home: '/instalaciones' },
   coordinator: { label: 'Coordinación', home: '/admin' },
-  teacher: { label: 'Profesor', home: '/' },
+  teacher: { label: 'Profesor', home: '/escuelas/asistencia' },
   organizer: { label: 'Torneos y eventos', home: '/' },
   cashier: { label: 'Caja', home: '/admin/finanzas' },
 };

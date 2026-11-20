@@ -91,5 +91,7 @@ export const NAV_ICON: Record<string, string> = {
   'sports:sports-admin': 'sports',
   'finance:accounting': 'chart',
   'access:reception-admin': 'card',
+  'schools:attendance-admin': 'people',
+  'schools:manage': 'activities',
   'bookings:series': 'calendar',
 };

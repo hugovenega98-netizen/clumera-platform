@@ -29,8 +29,9 @@ test('socia: cuenta unificada con lo suyo y lo de su hijo', async ({ page }) => 
   await page.goto(`${LAB_URL}/pagos`);
   const summary = page.getByRole('region', { name: 'Resumen de la cuenta' });
   await expect(summary.getByText('Pendiente del grupo')).toBeVisible();
-  // Cuota 22.000 + hockey 18.500 + vóley 12.000 + Tomás: cuota 12.000, colonia 40.000, M12 15.000.
-  await expect(summary.getByText('$ 119.500')).toBeVisible();
+  // Cuota 22.000 + hockey 18.500 + vóley 12.000 + Tomás: cuota 12.000, colonia 40.000, M12 15.000,
+  // natación 15.000 (escuela, Hito C).
+  await expect(summary.getByText('$ 134.500')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Tomás · Colonia de verano' }).getByText('$ 40.000')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Hockey · Damas' })).toBeVisible();
   await expectNoHorizontalScroll(page);
