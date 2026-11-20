@@ -19,6 +19,21 @@ describe('rutas de módulo con la licencia apagada', () => {
     expect((await res.json()).error.code).toBe('module_not_licensed');
     expect(session).not.toHaveBeenCalled();
   });
+
+  const ctxA = <T extends Record<string, string>>(params: T) => ({ params: Promise.resolve(params) });
+  const reqA = (path: string, method = 'GET', body?: unknown) => new Request(`http://localhost${path}`, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
+  for (const [name, call] of [
+    ['validar en un punto (Recepción)', async () => (await import('../app/api/m/access/check/route')).POST(reqA('/api/m/access/check', 'POST', { pointId: 'x', token: 'x' }))],
+    ['excepción autorizada', async () => (await import('../app/api/m/access/attempts/[id]/override/route')).POST(reqA('/api/m/access/attempts/x/override', 'POST', { reason: 'xxxxx' }), ctxA({ id: 'x' }))],
+    ['buscar persona en Recepción', async () => (await import('../app/api/m/access/people/route')).GET(reqA('/api/m/access/people?q=ana'))],
+  ] as const) {
+    it(`${name} responde 403 antes de mirar la sesión`, async () => {
+      const res = await call();
+      expect(res.status).toBe(403);
+      expect((await res.json()).error.code).toBe('module_not_licensed');
+      expect(session).not.toHaveBeenCalled();
+    });
+  }
 });
 
 describe('Reservas e Instalaciones con la licencia apagada', () => {
@@ -31,6 +46,8 @@ describe('Reservas e Instalaciones con la licencia apagada', () => {
     ['reservar sin cuenta', async () => (await import('../app/api/m/bookings/public/route')).POST(req('/api/m/bookings/public', 'POST', {}))],
     ['pagar con el enlace de la reserva', async () => (await import('../app/api/m/bookings/public/[token]/pay/route')).POST(req('/api/m/bookings/public/x.y/pay', 'POST', {}), ctx({ token: 'x.y' }))],
     ['cancelar con el enlace de la reserva', async () => (await import('../app/api/m/bookings/public/[token]/cancel/route')).POST(req('/api/m/bookings/public/x.y/cancel', 'POST', {}), ctx({ token: 'x.y' }))],
+    ['QR de una reserva propia', async () => (await import('../app/api/m/bookings/[id]/qr/route')).GET(req('/api/m/bookings/x/qr'), ctx({ id: 'x' }))],
+    ['QR con el enlace de la reserva', async () => (await import('../app/api/m/bookings/public/[token]/qr/route')).GET(req('/api/m/bookings/public/x.y/qr'), ctx({ token: 'x.y' }))],
     ['reserva fija', async () => (await import('../app/api/m/bookings/series/route')).POST(req('/api/m/bookings/series', 'POST', {}))],
     ['cancelar reserva fija', async () => (await import('../app/api/m/bookings/series/[id]/cancel/route')).POST(req('/api/m/bookings/series/x/cancel', 'POST', {}), ctx({ id: 'x' }))],
     ['alta de espacio', async () => (await import('../app/api/m/facilities/venues/route')).POST(req('/api/m/facilities/venues', 'POST', {}))],

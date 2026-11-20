@@ -5,6 +5,10 @@ import { bookingTitle, confirmPaidBookings, SERIES_CANCEL_REASON } from '@clumer
 import { deliverPendingPush, notify, vapidFromEnv } from '@clumera/notifications';
 import { eventNotice, matchAudience } from '@clumera/sports';
 import { mailGuestBooking } from './public-booking';
+import { getCredentials } from './services';
+
+/** El QR de una reserva vale desde media hora antes hasta que termina el turno. */
+export const BOOKING_ACCESS_LEAD_MINUTES = 30;
 
 /**
  * Consumidores del outbox de la app: cada módulo reacciona a eventos de otros sin importarlos.
@@ -44,6 +48,20 @@ export const consumers: OutboxConsumer[] = [
       };
       const [t, body] = text[event.type]!;
       await notify(tx, { personIds: [p.personId], eventKey: `${event.type}:${p.bookingId}`, source: 'bookings', title: t, body, url: '/reservas?vista=mias' });
+    },
+  },
+  {
+    // Reservas → Accesos: la reserva confirmada tiene su QR temporal; cancelada, liberada o en
+    // conflicto, se revoca y deja de entrar.
+    name: 'access:booking-credential',
+    types: ['booking.confirmed', 'booking.released', 'booking.conflict', 'booking.cancelled'],
+    async handle(event, tx) {
+      const p = event.payload as { bookingId: string };
+      const creds = getCredentials();
+      if (event.type !== 'booking.confirmed') return creds.revokeBookingCredential(p.bookingId, event.type === 'booking.cancelled' ? 'Reserva cancelada' : event.type === 'booking.released' ? 'Reserva liberada' : 'Pago tardío');
+      const b = await tx.booking.findUnique({ where: { id: p.bookingId }, select: { id: true, personId: true, status: true, startsAt: true, endsAt: true, venue: { select: { name: true } } } });
+      if (!b || b.status !== 'confirmed') return;
+      await creds.issueBookingCredential({ bookingId: b.id, personId: b.personId, validFrom: new Date(b.startsAt.getTime() - BOOKING_ACCESS_LEAD_MINUTES * 60_000), validTo: b.endsAt, label: `Reserva ${bookingTitle(b.venue.name, b.startsAt)}` });
     },
   },
   {

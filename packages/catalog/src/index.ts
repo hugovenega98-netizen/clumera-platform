@@ -1,5 +1,5 @@
 import { ModuleRegistry } from '@clumera/kernel';
-import { manifest as access } from '@clumera/module-access';
+import { manifest as access } from '@clumera/module-access/manifest';
 import { manifest as bookings } from '@clumera/module-bookings/manifest';
 import { manifest as events } from '@clumera/module-events';
 import { manifest as facilities } from '@clumera/module-facilities/manifest';

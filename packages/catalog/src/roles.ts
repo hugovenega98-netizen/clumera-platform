@@ -30,7 +30,7 @@ export const baseRoles = {
   medical: ['sports:view', 'sports:health.view'],
   accounting: ['finance:*', 'identity:person.view'],
   desk: ['sports:view', 'sports:match.control'],
-  reception: ['access:validate'],
+  reception: ['access:validate', 'access:override', 'access:log.view'],
   facility_manager: ['facilities:*', 'bookings:manage', 'bookings:tariff.manage'],
   coordinator: ['schools:manage', 'summer:manage', 'identity:person.view', 'notifications:send'],
   teacher: ['schools:attendance.mark'],

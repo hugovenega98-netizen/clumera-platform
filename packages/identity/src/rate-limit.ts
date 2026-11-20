@@ -19,6 +19,10 @@ export const RATE_RULES = {
   publicBookingByEmail: { name: 'pub-book-mail', limit: 4, windowSeconds: 60 * 60 },
   /** Acciones con el enlace de la reserva (pagar, cancelar). */
   publicBookingLinkByIp: { name: 'pub-link-ip', limit: 30, windowSeconds: 15 * 60 },
+  /** El QR de la reserva se renueva cada 30 s: ~30 pedidos por página abierta cada 15 min. */
+  publicBookingQrByIp: { name: 'pub-qr-ip', limit: 150, windowSeconds: 15 * 60 },
+  /** Recepción busca personas por nombre o documento: tope por cuenta. */
+  accessSearchByAccount: { name: 'access-search', limit: 120, windowSeconds: 10 * 60 },
 } satisfies Record<string, RateRule>;
 
 export interface RateResult {

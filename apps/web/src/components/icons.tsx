@@ -90,4 +90,6 @@ export const NAV_ICON: Record<string, string> = {
   'identity:people': 'people',
   'sports:sports-admin': 'sports',
   'finance:accounting': 'chart',
+  'access:reception-admin': 'card',
+  'bookings:series': 'calendar',
 };

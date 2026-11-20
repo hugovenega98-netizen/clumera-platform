@@ -36,6 +36,7 @@ model Person {
   pickupsAsAuthorized PickupAuthorization[] @relation("PickupAuthorized")
   notifications       Notification[]
   credentials         Credential[]
+  accessAttempts      AccessAttempt[]
   charges             Charge[]
   teamMemberships     TeamMember[]
   matchCallups        MatchCallup[]
@@ -408,9 +409,61 @@ model Credential {
   validTo       DateTime?
   revokedAt     DateTime?
   revokedReason String?
+  /// Reserva que habilita esta credencial (kind = booking): una por reserva.
+  bookingId     String?          @unique
+  /// Texto que ve Recepción al validar (p. ej. «Reserva F5-1 · vie 20/11 21:00»). Sin datos sensibles.
+  label         String?
   createdAt     DateTime         @default(now())
+  attempts      AccessAttempt[]
 
   @@index([personId, kind, status])
+}
+
+// ───────────── Accesos ─────────────
+
+/// Punto de control de acceso (entrada principal, pileta…). Recepción elige en cuál está.
+model AccessPoint {
+  id        String          @id @default(cuid())
+  slug      String          @unique
+  name      String
+  active    Boolean         @default(true)
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+  attempts  AccessAttempt[]
+}
+
+enum AccessResult {
+  granted
+  denied
+}
+
+/// Cada intento de acceso queda registrado (permitido o denegado), con quién lo validó y cómo.
+/// Guarda solo validez, motivo y el texto visible: nunca deuda ni salud.
+model AccessAttempt {
+  id             String         @id @default(cuid())
+  pointId        String
+  point          AccessPoint    @relation(fields: [pointId], references: [id], onDelete: Restrict)
+  credentialId   String?
+  credential     Credential?    @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  personId       String?
+  person         Person?        @relation(fields: [personId], references: [id], onDelete: SetNull)
+  result         AccessResult
+  /// Código del motivo de rechazo (revocada, vencido, sin_membresia…); null si se permitió.
+  reason         String?
+  /// Lo que vio Recepción: «Socio N° 1042 · Activo», «Credencial revocada», «Reserva F5-1 …».
+  detail         String
+  /// qr | manual (búsqueda por persona) | excepcion
+  method         String
+  /// Excepción autorizada: el motivo que escribió Recepción y el intento denegado que la originó.
+  overrideReason String?
+  overrideOfId   String?        @unique
+  overrideOf     AccessAttempt? @relation("AccessOverride", fields: [overrideOfId], references: [id], onDelete: SetNull)
+  override       AccessAttempt? @relation("AccessOverride")
+  byPersonId     String
+  createdAt      DateTime       @default(now())
+
+  @@index([pointId, createdAt])
+  @@index([personId, createdAt])
 }
 
 // ───────────── Finanzas ─────────────
