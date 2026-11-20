@@ -93,5 +93,6 @@ export const NAV_ICON: Record<string, string> = {
   'access:reception-admin': 'card',
   'schools:attendance-admin': 'people',
   'schools:manage': 'activities',
+  'summer:manage': 'sun',
   'bookings:series': 'calendar',
 };

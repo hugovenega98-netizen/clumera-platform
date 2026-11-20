@@ -27,9 +27,29 @@ Límites conocidos: los grupos no ocupan todavía la agenda central (se suma con
 grupo» del profesor queda para más adelante; las cuotas de meses siguientes se emiten desde la
 coordinación (no hay corrida automática).
 
-## Tramo 2 · Verano: colonia y pileta (caso C)
+## Tramo 2 · Colonia de verano: caso C (entregado)
 
-Colonia con documentos obligatorios y retiro autorizado; pases de pileta con vigencia propia. Necesita
-el servicio de Archivos (dónde se guardan los documentos: decisión pendiente).
+| Qué | Dónde |
+| --- | --- |
+| Servicio de Archivos en la base (decisión: Neon): metadatos y contenido separados; el tipo se decide por la firma del archivo (PDF, JPG, PNG, WEBP), hasta 4 MB (límite de cuerpo de Vercel); descarga siempre como adjunto, sin que el navegador adivine el tipo, y auditada | `packages/files`, `FileObject` / `FileBlob`, `GET /api/files/<id>` |
+| Retiro autorizado en Identidad (vale para todo el club): la persona autorizada existe una sola vez (por documento) y el documento queda como digest + últimos 4; los responsables son titulares; se revoca | `packages/identity/src/pickup.ts`, `POST /api/identity/pickups`, `DELETE /api/identity/pickups/<id>` |
+| Colonia: grupos por edad y turno con cupo (servicio de Inscripciones), documentos que pide la propuesta (apto físico — dato de salud —, DNI, autorización de salidas), 10% desde el segundo hermano, cargo único a Pagos | `packages/modules/summer`, `ProgramDocument`, `EnrollmentDocument` |
+| La familia inscribe: el lugar queda tomado («falta completar»); sube documentos, autoriza retiros, deja contacto de emergencia y uso de imagen, y paga con Mercado Pago | `/verano`, `/verano/inscripcion/<id>`, `POST /api/m/summer/enrollments`, `…/documents/<código>`, `…/details`, `…/withdraw` |
+| Se confirma sola con todos los documentos aprobados y el pago acreditado, en cualquier orden (consumidor `summer:payment-approved` y la revisión) | `refreshCampEnrollment`, `confirmPaidCamp` |
+| Coordinación: indicadores (confirmados, pendientes de pago, espera, documentación incompleta), grupos con cupo, revisión de documentos (rechazo con motivo, la familia sube otro) y quiénes retiran a cada chico | `/admin/verano`, `POST /api/m/summer/documents/<id>/review` |
+| Avisos a la familia: confirmada, lugar liberado, documento rechazado | consumidor `notifications:enrollment` |
+
+Quién: `summer:camp.enroll` (socios, para su familia a cargo), `summer:manage` (Coordinador) y
+`summer:document.sensitive.view` para el apto físico: permiso propio que ningún comodín concede (ni
+Superadmin); lo tienen la coordinación y salud. Casos `camp-enroll`, `camp-manage` y
+`camp-health-doc` de la matriz. Todas las rutas llaman a `requireModule('summer')`.
+
+Lab: colonia de enero (4 grupos, documentos, 10% familiar); Sofía Gómez con documentos por revisar y
+su abuela autorizada; la socia tiene ahora dos hijos (Tomás y Lola) para recorrer el caso C.
+
+Límites conocidos: la coordinación crea la temporada y los grupos de colonia desde el seed (la pantalla
+de alta queda para el siguiente tramo); el profesor de colonia todavía no ve la lista de retiros en su
+asistencia; sin firma digital (la autorización firmada se sube como archivo); pases de pileta: siguiente
+tramo.
 
 ## Tramo 3 · Torneos con página pública (caso D)

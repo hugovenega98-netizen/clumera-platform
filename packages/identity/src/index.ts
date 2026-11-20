@@ -11,3 +11,4 @@ export * from './spaces';
 export * from './directory';
 export * from './admin-people';
 export * from './import';
+export * from './pickup';

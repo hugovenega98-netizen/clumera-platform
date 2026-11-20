@@ -57,7 +57,7 @@ export function moduleOfAction(action: string): ModuleId | null {
  * Los datos clínicos son de quien atiende la salud, no del administrador general (como en el core
  * anterior: «el administrador general no tiene acceso al historial clínico»).
  */
-export const EXPLICIT_ONLY_ACTIONS: ReadonlySet<string> = new Set(['sports:health.view']);
+export const EXPLICIT_ONLY_ACTIONS: ReadonlySet<string> = new Set(['sports:health.view', 'summer:document.sensitive.view']);
 
 function grants(permission: string, action: string, moduleId: string): 'full' | 'self' | false {
   const self = permission.endsWith(':self');

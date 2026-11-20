@@ -23,6 +23,8 @@ export const RATE_RULES = {
   publicBookingQrByIp: { name: 'pub-qr-ip', limit: 150, windowSeconds: 15 * 60 },
   /** Recepción busca personas por nombre o documento: tope por cuenta. */
   accessSearchByAccount: { name: 'access-search', limit: 120, windowSeconds: 10 * 60 },
+  /** Subida de documentos (colonia): por cuenta. */
+  uploadsByAccount: { name: 'uploads', limit: 40, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateRule>;
 
 export interface RateResult {

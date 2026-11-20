@@ -39,6 +39,7 @@ model Person {
   accessAttempts      AccessAttempt[]
   enrollments         Enrollment[]
   attendances         Attendance[]
+  files               FileObject[]
   charges             Charge[]
   teamMemberships     TeamMember[]
   matchCallups        MatchCallup[]
@@ -1060,25 +1061,28 @@ enum FeeKind {
 
 /// Una propuesta con inscripción: escuela de natación, colonia de verano, funcional adultos…
 model Program {
-  id          String        @id @default(cuid())
-  slug        String        @unique
+  id                    String            @id @default(cuid())
+  slug                  String            @unique
   /// Módulo dueño (schools, summer…): cada módulo ve y administra solo lo suyo.
-  module      String
-  name        String
-  description String?
+  module                String
+  name                  String
+  description           String?
   /// Ámbito «actividad» de los profesores (rol con scope activity:<activity>).
-  activity    String
-  minAge      Int?
-  maxAge      Int?
-  membersOnly Boolean       @default(false)
-  feeKind     FeeKind       @default(monthly)
+  activity              String
+  minAge                Int?
+  maxAge                Int?
+  membersOnly           Boolean           @default(false)
+  feeKind               FeeKind           @default(monthly)
   /// Centavos. Socio y no socio.
-  memberFee   Int
-  guestFee    Int
-  status      ProgramStatus @default(open)
-  sortOrder   Int           @default(0)
-  createdAt   DateTime      @default(now())
-  groups      Group[]
+  memberFee             Int
+  guestFee              Int
+  status                ProgramStatus     @default(open)
+  sortOrder             Int               @default(0)
+  /// Descuento (%) desde la segunda inscripción de la misma familia (colonia).
+  familyDiscountPercent Int               @default(0)
+  createdAt             DateTime          @default(now())
+  groups                Group[]
+  documents             ProgramDocument[]
 
   @@index([module, status])
 }
@@ -1115,23 +1119,29 @@ enum EnrollmentStatus {
 
 /// Inscripción de una persona a un grupo. Nunca se confirma por encima del cupo (bloqueo por grupo).
 model Enrollment {
-  id             String           @id @default(cuid())
+  id             String               @id @default(cuid())
   groupId        String
-  group          Group            @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  group          Group                @relation(fields: [groupId], references: [id], onDelete: Restrict)
   personId       String
-  person         Person           @relation(fields: [personId], references: [id], onDelete: Restrict)
+  person         Person               @relation(fields: [personId], references: [id], onDelete: Restrict)
   status         EnrollmentStatus
   /// Orden en la lista de espera (solo status = waitlist).
   waitPosition   Int?
-  memberRate     Boolean          @default(false)
+  memberRate     Boolean              @default(false)
   fee            Int
   chargeId       String?
   enrolledById   String
   confirmedAt    DateTime?
   withdrawnAt    DateTime?
   withdrawReason String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  /// Colonia: autoriza el uso de imagen en las redes del club.
+  imageConsent   Boolean?
+  /// Colonia: contacto de emergencia (nombre y teléfono). Sin datos clínicos.
+  emergencyName  String?
+  emergencyPhone String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  documents      EnrollmentDocument[]
 
   @@index([groupId, status])
   @@index([personId])
@@ -1157,4 +1167,72 @@ model Attendance {
   markedAt   DateTime       @default(now())
 
   @@unique([groupId, personId, day])
+}
+
+// ───────────── Archivos (servicio compartido) ─────────────
+
+/// Metadatos de un archivo subido. El contenido va aparte (`FileBlob`) para no cargarlo al listar.
+/// `sensitive`: datos de salud (apto físico): solo con permiso propio.
+model FileObject {
+  id            String               @id @default(cuid())
+  ownerPersonId String
+  owner         Person               @relation(fields: [ownerPersonId], references: [id], onDelete: Restrict)
+  purpose       String
+  filename      String
+  contentType   String
+  size          Int
+  sha256        String
+  sensitive     Boolean              @default(false)
+  uploadedById  String
+  createdAt     DateTime             @default(now())
+  blob          FileBlob?
+  documents     EnrollmentDocument[]
+
+  @@index([ownerPersonId])
+}
+
+model FileBlob {
+  fileId String     @id
+  file   FileObject @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  data   Bytes
+}
+
+// ───────────── Documentación de inscripciones (colonia) ─────────────
+
+/// Documento que pide un programa (apto físico, DNI, autorización de salidas…).
+model ProgramDocument {
+  id        String               @id @default(cuid())
+  programId String
+  program   Program              @relation(fields: [programId], references: [id], onDelete: Cascade)
+  code      String
+  label     String
+  required  Boolean              @default(true)
+  sensitive Boolean              @default(false)
+  sortOrder Int                  @default(0)
+  items     EnrollmentDocument[]
+
+  @@unique([programId, code])
+}
+
+enum DocumentStatus {
+  submitted
+  approved
+  rejected
+}
+
+model EnrollmentDocument {
+  id           String          @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment      @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  documentId   String
+  requirement  ProgramDocument @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  fileId       String
+  file         FileObject      @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  status       DocumentStatus  @default(submitted)
+  note         String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@unique([enrollmentId, documentId])
 }

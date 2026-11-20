@@ -4,6 +4,7 @@ import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } f
 import { createAuthService, createCredentialService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
 import { checkAccess } from '@clumera/module-access';
 import { createGroup, createProgram, enrollInSchool, markAttendance } from '@clumera/module-schools';
+import { enrollInCamp, submitCampDocument } from '@clumera/module-summer';
 import { clubDayOf, clubTime, placeSlot } from '@clumera/agenda';
 import { cancelBooking, confirmPaidBookings, createBooking, createBookingSeries, createPublicBooking } from '@clumera/module-bookings';
 import { addTariff, createBlock, createVenue, setBookingRule, setVenueStatus } from '@clumera/module-facilities';
@@ -63,7 +64,14 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
       await db.familyGroup.create({
         data: {
           name: 'Familia Fernández',
-          members: { create: [{ personId: person.id, role: 'guardian', relation: 'madre' }, { personId: child.id, role: 'dependent', relation: 'hijo' }] },
+          members: {
+            create: [
+              { personId: person.id, role: 'guardian', relation: 'madre' },
+              { personId: child.id, role: 'dependent', relation: 'hijo' },
+              // Segunda hija (no socia): con Tomás, el caso C de colonia (dos hermanos).
+              { personId: (await db.person.create({ data: { firstName: 'Lola', lastName: 'Fernández', birthDate: new Date('2018-03-03') } })).id, role: 'dependent', relation: 'hija' },
+            ],
+          },
         },
       });
     }
@@ -153,6 +161,7 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   await seedFacilities(db, padron);
   await seedAccess(db, padron);
   await seedSchools(db, (await db.person.findFirstOrThrow({ where: { email: 'admin@lab.clumera.app' }, select: { id: true } })).id);
+  await seedCamp(db, padron);
 
   return { people: await db.person.count() };
 }
@@ -401,6 +410,60 @@ async function seedSchools(db: PrismaClient, admin: string): Promise<void> {
   while (![1, 3].includes((last.getUTCDay() + 6) % 7)) last.setUTCDate(last.getUTCDate() - 1);
   last.setUTCDate(last.getUTCDate() - 7);
   ok(await markAttendance(db, admin, marJue, last.toISOString().slice(0, 10), [{ personId: tomas, mark: 'present' }, { personId: kids[0]!, mark: 'late' }]));
+}
+
+/**
+ * Colonia de demo: temporada de enero con grupos por edad, documentos (apto físico —dato de salud—,
+ * DNI y autorización de salidas) y 10% de descuento desde el segundo hermano. Sofía Gómez tiene la
+ * inscripción pendiente con documentos para revisar y su abuela autorizada a retirarla.
+ */
+async function seedCamp(db: PrismaClient, padron: Record<string, string>): Promise<void> {
+  const ok = <T>(r: { ok: true; value: T } | { ok: false; error: Error }): T => {
+    if (!r.ok) throw r.error;
+    return r.value;
+  };
+  const p = await db.program.create({
+    data: {
+      slug: 'colonia-verano',
+      module: 'summer',
+      name: 'Colonia de verano',
+      description: 'Enero · lunes a viernes',
+      activity: 'colonia',
+      minAge: 4,
+      maxAge: 12,
+      feeKind: 'once',
+      memberFee: 8_000_000,
+      guestFee: 10_000_000,
+      familyDiscountPercent: 10,
+      documents: {
+        create: [
+          { code: 'apto', label: 'Apto físico', sensitive: true, sortOrder: 0 },
+          { code: 'dni', label: 'Copia de DNI', sortOrder: 1 },
+          { code: 'salidas', label: 'Autorización de salidas', sortOrder: 2 },
+        ],
+      },
+      groups: {
+        create: [
+          { name: 'G1 · Pequeños (4 a 5)', schedule: 'Lun a Vie 14:00', days: 31, startMinute: 14 * 60, durationMinutes: 240, capacity: 30, place: 'Salón infantil', teacherName: 'Ana Lima' },
+          { name: 'G2 · Exploradores (6 a 7)', schedule: 'Lun a Vie 09:00', days: 31, startMinute: 9 * 60, durationMinutes: 240, capacity: 40, place: 'Sintética', teacherName: 'Iñaki Sosa' },
+          { name: 'G3 · Aventureros (8 a 10)', schedule: 'Lun a Vie 09:00', days: 31, startMinute: 9 * 60, durationMinutes: 240, capacity: 60, place: 'Cancha 2', teacherName: 'Laura Ríos' },
+          { name: 'G4 · Líderes (11 a 12)', schedule: 'Lun a Vie 09:00', days: 31, startMinute: 9 * 60, durationMinutes: 240, capacity: 40, place: 'F5-1 y pileta', teacherName: 'Sol Vera' },
+        ],
+      },
+    },
+    include: { groups: true },
+  });
+  const martina = padron['Martina Gómez']!;
+  const sofia = padron['Sofía Gómez']!;
+  const g3 = p.groups.find((g) => g.name.startsWith('G3'))!.id;
+  const e = ok(await enrollInCamp(db, martina, { groupId: g3, personId: sofia, familyIds: [martina, sofia, padron['Joaquín Gómez']!] }));
+  const pdf = new TextEncoder().encode('%PDF-1.4\n% Documento de demo de Clumera Lab\n');
+  ok(await submitCampDocument(db, martina, { enrollmentId: e.id, code: 'apto', filename: 'apto-fisico-sofia.pdf', bytes: pdf }));
+  ok(await submitCampDocument(db, martina, { enrollmentId: e.id, code: 'dni', filename: 'dni-sofia.pdf', bytes: pdf }));
+  await db.enrollment.update({ where: { id: e.id }, data: { imageConsent: true, emergencyName: 'Martina Gómez', emergencyPhone: '1155550101' } });
+  // Lab no tiene la clave de documentos del núcleo: la abuela se carga sin DNI (en la app, siempre con DNI).
+  const rosa = await db.person.create({ data: { firstName: 'Rosa', lastName: 'Paredes', phone: '1155550199' } });
+  await db.pickupAuthorization.create({ data: { minorId: sofia, authorizedPersonId: rosa.id, note: 'abuela' } });
 }
 
 /**

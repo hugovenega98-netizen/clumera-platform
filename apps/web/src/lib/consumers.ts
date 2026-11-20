@@ -2,6 +2,7 @@ import 'server-only';
 import { processOutbox, type OutboxConsumer, type PrismaClient } from '@clumera/db';
 import { formatMoney, receiptNumber } from '@clumera/finance';
 import { bookingTitle, confirmPaidBookings, SERIES_CANCEL_REASON } from '@clumera/module-bookings';
+import { confirmPaidCamp } from '@clumera/module-summer';
 import { deliverPendingPush, notify, vapidFromEnv } from '@clumera/notifications';
 import { guardiansOf } from '@clumera/identity';
 import { eventNotice, matchAudience } from '@clumera/sports';
@@ -30,6 +31,15 @@ export const consumers: OutboxConsumer[] = [
     },
   },
   {
+    // Finanzas → Verano: el pago acreditado confirma la colonia si los documentos ya están aprobados.
+    name: 'summer:payment-approved',
+    types: ['payment.approved'],
+    async handle(event, tx) {
+      const p = event.payload as { chargeIds?: string[] };
+      await confirmPaidCamp(tx as unknown as PrismaClient, p.chargeIds ?? []);
+    },
+  },
+  {
     name: 'notifications:booking',
     types: ['booking.confirmed', 'booking.released', 'booking.conflict', 'booking.cancelled'],
     async handle(event, tx) {
@@ -52,22 +62,30 @@ export const consumers: OutboxConsumer[] = [
     },
   },
   {
-    // Escuelas → Avisos: a la persona y a sus responsables (un menor no tiene cuenta).
+    // Escuelas y Verano → Avisos: a la persona y a sus responsables (un menor no tiene cuenta).
     name: 'notifications:enrollment',
-    types: ['enrollment.confirmed', 'enrollment.waitlisted', 'enrollment.promoted'],
+    types: ['enrollment.confirmed', 'enrollment.waitlisted', 'enrollment.promoted', 'enrollment.pending', 'camp.document_rejected'],
     async handle(event, tx) {
-      const p = event.payload as { enrollmentId: string; personId: string };
-      const e = await tx.enrollment.findUnique({ where: { id: p.enrollmentId }, select: { waitPosition: true, person: { select: { firstName: true } }, group: { select: { name: true, schedule: true, program: { select: { name: true, module: true } } } } } });
-      if (!e || e.group.program.module !== 'schools') return;
+      const p = event.payload as { enrollmentId: string; personId: string; document?: string; note?: string | null };
+      const e = await tx.enrollment.findUnique({ where: { id: p.enrollmentId }, select: { id: true, waitPosition: true, person: { select: { firstName: true } }, group: { select: { name: true, schedule: true, program: { select: { name: true, module: true } } } } } });
+      if (!e) return;
+      const camp = e.group.program.module === 'summer';
+      if (e.group.program.module !== 'schools' && !camp) return;
       const what = `${e.group.program.name} · ${e.group.name}`;
-      const text: Record<string, [string, string]> = {
-        'enrollment.confirmed': [`Inscripción confirmada: ${e.person.firstName}`, `${what} (${e.group.schedule}). La cuota del mes está en Pagos.`],
-        'enrollment.waitlisted': [`${e.person.firstName} quedó en lista de espera`, `${what}: puesto ${e.waitPosition ?? '—'}. Te avisamos si se libera un lugar.`],
-        'enrollment.promoted': [`Se liberó un lugar: ${e.person.firstName} quedó inscripto`, `${what} (${e.group.schedule}). La cuota del mes está en Pagos.`],
+      const name = e.person.firstName;
+      const url = camp ? `/verano/inscripcion/${e.id}` : '/escuelas';
+      const text: Record<string, [string, string] | null> = {
+        'enrollment.confirmed': camp ? [`Colonia confirmada: ${name}`, `${what}. Documentos aprobados y pago acreditado.`] : [`Inscripción confirmada: ${name}`, `${what} (${e.group.schedule}). La cuota del mes está en Pagos.`],
+        'enrollment.waitlisted': [`${name} quedó en lista de espera`, `${what}: puesto ${e.waitPosition ?? '—'}. Te avisamos si se libera un lugar.`],
+        'enrollment.promoted': camp ? [`Se liberó un lugar en la colonia: ${name}`, `${what}. Completá los documentos y el pago para confirmarlo.`] : [`Se liberó un lugar: ${name} quedó inscripto`, `${what} (${e.group.schedule}). La cuota del mes está en Pagos.`],
+        // La inscripción pendiente de colonia ya tiene su pantalla; no hace falta otro aviso.
+        'enrollment.pending': null,
+        'camp.document_rejected': [`Revisá un documento de ${name}`, `${p.document ?? 'Documento'} rechazado${p.note ? `: ${p.note}` : ''}. Subí uno nuevo.`],
       };
-      const [title, body] = text[event.type]!;
+      const t = text[event.type];
+      if (!t) return;
       const personIds = [...new Set([p.personId, ...(await guardiansOf(tx as unknown as PrismaClient, p.personId))])];
-      await notify(tx, { personIds, eventKey: `${event.type}:${p.enrollmentId}`, source: 'schools', title, body, url: '/escuelas' });
+      await notify(tx, { personIds, eventKey: `${event.type}:${event.id}`, source: camp ? 'summer' : 'schools', title: t[0], body: t[1], url });
     },
   },
   {

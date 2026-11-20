@@ -7,12 +7,19 @@
     "layer": "module"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./manifest": "./src/manifest.ts"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@clumera/db": "*",
+    "@clumera/enrollment": "*",
+    "@clumera/files": "*",
+    "@clumera/finance": "*",
+    "@clumera/identity": "*",
     "@clumera/kernel": "*"
   }
 }
