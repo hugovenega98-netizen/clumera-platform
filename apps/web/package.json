@@ -15,6 +15,7 @@
     "bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {
+    "@clumera/agenda": "*",
     "@clumera/catalog": "*",
     "@clumera/config": "*",
     "@clumera/db": "*",
@@ -22,6 +23,8 @@
     "@clumera/identity": "*",
     "@clumera/kernel": "*",
     "@clumera/mail": "*",
+    "@clumera/module-bookings": "*",
+    "@clumera/module-facilities": "*",
     "@clumera/notifications": "*",
     "@clumera/sports": "*",
     "@clumera/ui": "*",

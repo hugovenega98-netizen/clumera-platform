@@ -36,7 +36,7 @@ async function adminNav(personId: string): Promise<NavLink[]> {
 
 /** Dock del teléfono: Inicio + hasta tres secciones principales + Más. */
 function dockItems(nav: NavLink[], home: string): NavLink[] {
-  const preferred = ['identity:card', 'bookings:book', 'finance:payments', 'sports:my-sports', 'identity:people', 'finance:accounting'];
+  const preferred = ['identity:card', 'bookings:book', 'finance:payments', 'sports:my-sports', 'identity:people', 'finance:accounting', 'facilities:venues', 'bookings:manage'];
   const main = preferred.map((k) => nav.find((n) => n.key === k)).filter((n): n is NavLink => Boolean(n)).slice(0, 3);
   return [{ key: 'home', href: home, label: 'Inicio', icon: 'home' }, ...main, { key: 'more', href: '/espacios', label: 'Más', icon: 'more' }];
 }

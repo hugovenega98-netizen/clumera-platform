@@ -15,6 +15,7 @@
     "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@clumera/agenda": "*",
     "@clumera/catalog": "*",
     "@clumera/config": "*",
     "@clumera/db": "*",
@@ -22,6 +23,8 @@
     "@clumera/identity": "*",
     "@clumera/kernel": "*",
     "@clumera/mail": "*",
+    "@clumera/module-bookings": "*",
+    "@clumera/module-facilities": "*",
     "@clumera/sports": "*",
     "@clumera/ui": "*",
     "@fontsource/barlow": "^5.3.0",

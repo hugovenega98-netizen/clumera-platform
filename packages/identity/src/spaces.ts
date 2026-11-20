@@ -23,7 +23,7 @@ const ROLE_SPACE: Record<string, { label: string; home: string }> = {
   accounting: { label: 'Contabilidad', home: '/admin' },
   desk: { label: 'Mesa de control', home: '/deportes/mesa' },
   reception: { label: 'Recepción', home: '/' },
-  facility_manager: { label: 'Instalaciones', home: '/' },
+  facility_manager: { label: 'Instalaciones', home: '/instalaciones' },
   coordinator: { label: 'Coordinación', home: '/admin' },
   teacher: { label: 'Profesor', home: '/' },
   organizer: { label: 'Torneos y eventos', home: '/' },

@@ -16,17 +16,17 @@ datasource db {
 // ───────────── Identidad ─────────────
 
 model Person {
-  id           String    @id @default(cuid())
-  firstName    String
-  lastName     String
+  id        String    @id @default(cuid())
+  firstName String
+  lastName  String
   /// HMAC del documento normalizado: permite buscar y deduplicar sin guardar el número legible.
-  docDigest    String?   @unique
-  docLast4     String?
-  birthDate    DateTime? @db.Date
-  email        String?
-  phone        String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  docDigest String?   @unique
+  docLast4  String?
+  birthDate DateTime? @db.Date
+  email     String?
+  phone     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   account             UserAccount?
   memberships         ClubMembership[]
@@ -42,16 +42,17 @@ model Person {
   absences            Absence[]
   injuryReports       InjuryReport[]
   matchFollows        MatchFollow[]
-  paymentsMade        Payment[]            @relation("PaymentPayer")
+  bookings            Booking[]
+  paymentsMade        Payment[]             @relation("PaymentPayer")
 
   @@index([lastName, firstName])
   @@index([email])
 }
 
 enum AccountStatus {
-  pending   // creada, sin activar
+  pending // creada, sin activar
   active
-  locked    // bloqueada por intentos fallidos
+  locked // bloqueada por intentos fallidos
   disabled
 }
 
@@ -147,14 +148,14 @@ model ClubMembership {
 }
 
 model MembershipStatusChange {
-  id           String           @id @default(cuid())
+  id           String            @id @default(cuid())
   membershipId String
-  membership   ClubMembership   @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  membership   ClubMembership    @relation(fields: [membershipId], references: [id], onDelete: Cascade)
   fromStatus   MembershipStatus?
   toStatus     MembershipStatus
   reason       String?
   changedById  String?
-  changedAt    DateTime         @default(now())
+  changedAt    DateTime          @default(now())
 
   @@index([membershipId, changedAt])
 }
@@ -169,8 +170,8 @@ model FamilyGroup {
 }
 
 enum FamilyRole {
-  guardian    // responsable
-  dependent   // representado
+  guardian // responsable
+  dependent // representado
   member
 }
 
@@ -380,10 +381,10 @@ model DevMailMessage {
 
 enum CredentialKind {
   member_card // carnet social
-  pool_pass   // pase de pileta (Hito C)
-  booking     // acceso de una reserva (Hito B)
-  ticket      // entrada a un evento (Hito D)
-  guest       // invitado temporal
+  pool_pass // pase de pileta (Hito C)
+  booking // acceso de una reserva (Hito B)
+  ticket // entrada a un evento (Hito D)
+  guest // invitado temporal
 }
 
 enum CredentialStatus {
@@ -422,9 +423,9 @@ enum ChargeStatus {
 
 /// Lo que se debe: cuota, arancel, reserva, colonia… Cada módulo emite los suyos con `source` + `sourceRef`.
 model Charge {
-  id              String             @id @default(cuid())
+  id              String              @id @default(cuid())
   personId        String
-  person          Person             @relation(fields: [personId], references: [id], onDelete: Restrict)
+  person          Person              @relation(fields: [personId], references: [id], onDelete: Restrict)
   /// cuota_social, arancel, reserva, colonia, evento, tienda, otro
   concept         String
   /// Agrupador visible en la cuenta: «Membresía social», «Rugby XV», «Servicios».
@@ -433,15 +434,15 @@ model Charge {
   /// AAAA-MM cuando corresponde a un período.
   period          String?
   amount          Int
-  paidAmount      Int                @default(0)
-  dueDate         DateTime           @db.Date
-  status          ChargeStatus       @default(pending)
+  paidAmount      Int                 @default(0)
+  dueDate         DateTime            @db.Date
+  status          ChargeStatus        @default(pending)
   /// Módulo que lo originó y su referencia: emitir dos veces lo mismo no duplica.
   source          String
   sourceRef       String
   issuedById      String?
   cancelledReason String?
-  createdAt       DateTime           @default(now())
+  createdAt       DateTime            @default(now())
   allocations     PaymentAllocation[]
 
   @@unique([source, sourceRef])
@@ -532,19 +533,19 @@ model Sport {
 }
 
 model Team {
-  id         String       @id @default(cuid())
-  sportId    String
-  sport      Sport        @relation(fields: [sportId], references: [id], onDelete: Restrict)
-  name       String
+  id            String         @id @default(cuid())
+  sportId       String
+  sport         Sport          @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  name          String
   /// Ámbito de roles: rugby-m19…
-  slug       String       @unique
+  slug          String         @unique
   /// Arancel mensual en centavos (se emite como cargo en Finanzas). Nulo: sin arancel.
-  monthlyFee Int?
-  active     Boolean      @default(true)
-  createdAt  DateTime     @default(now())
-  members    TeamMember[]
-  matches    Match[]
-  absences   Absence[]
+  monthlyFee    Int?
+  active        Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  members       TeamMember[]
+  matches       Match[]
+  absences      Absence[]
   injuryReports InjuryReport[]
 
   @@unique([sportId, name])
@@ -575,29 +576,29 @@ enum MatchStatus {
 }
 
 model Match {
-  id           String        @id @default(cuid())
-  teamId       String
-  team         Team          @relation(fields: [teamId], references: [id], onDelete: Restrict)
-  opponent     String
-  startsAt     DateTime
-  home         Boolean       @default(true)
-  venue        String        @default("")
-  status       MatchStatus   @default(scheduled)
-  scoreFor     Int?
-  scoreAgainst Int?
+  id               String                 @id @default(cuid())
+  teamId           String
+  team             Team                   @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  opponent         String
+  startsAt         DateTime
+  home             Boolean                @default(true)
+  venue            String                 @default("")
+  status           MatchStatus            @default(scheduled)
+  scoreFor         Int?
+  scoreAgainst     Int?
   /// Minuto a minuto público (sin sesión). Privado por defecto.
-  mamPublic    Boolean       @default(false)
+  mamPublic        Boolean                @default(false)
   /// Transmisión: id de video de YouTube (11 caracteres, validado). Se ve donde se ve el minuto a minuto.
-  streamVideoId String?
-  createdById  String
-  createdAt    DateTime      @default(now())
-  events       MatchEvent[]
-  clock        MatchClock?
-  callups      MatchCallup[]
-  guestPasses  MatchGuestPass[]
-  follows      MatchFollow[]
+  streamVideoId    String?
+  createdById      String
+  createdAt        DateTime               @default(now())
+  events           MatchEvent[]
+  clock            MatchClock?
+  callups          MatchCallup[]
+  guestPasses      MatchGuestPass[]
+  follows          MatchFollow[]
   temporaryPlayers MatchTemporaryPlayer[]
-  substitutions MatchSubstitution[]
+  substitutions    MatchSubstitution[]
 
   @@index([teamId, startsAt])
   @@index([status, startsAt])
@@ -632,21 +633,21 @@ enum MatchSide {
 }
 
 model MatchEvent {
-  id             String    @id @default(cuid())
-  matchId        String
-  match          Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  personId       String?
+  id                String                @id @default(cuid())
+  matchId           String
+  match             Match                 @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  personId          String?
   temporaryPlayerId String?
-  temporaryPlayer MatchTemporaryPlayer? @relation(fields: [temporaryPlayerId], references: [id], onDelete: Restrict)
-  side           MatchSide @default(own)
-  opponentPlayer String?
-  type           String
-  minute         Int?
-  setNumber      Int?
-  createdById    String
-  createdAt      DateTime  @default(now())
+  temporaryPlayer   MatchTemporaryPlayer? @relation(fields: [temporaryPlayerId], references: [id], onDelete: Restrict)
+  side              MatchSide             @default(own)
+  opponentPlayer    String?
+  type              String
+  minute            Int?
+  setNumber         Int?
+  createdById       String
+  createdAt         DateTime              @default(now())
   /// Deshacer en la mesa: la incidencia queda anulada, no se borra.
-  voidedAt       DateTime?
+  voidedAt          DateTime?
 
   @@index([matchId, createdAt])
   @@index([personId, type])
@@ -798,4 +799,158 @@ model InjurySession {
   createdAt    DateTime          @default(now())
 
   @@index([reportId, createdAt])
+}
+
+// ───────────── Hito B · Agenda central e Instalaciones ─────────────
+
+enum VenueStatus {
+  available
+  maintenance
+  out_of_service
+}
+
+/// Espacio físico del club (cancha, pileta, salón). El estado físico va aparte de la ocupación.
+model Venue {
+  id         String       @id @default(cuid())
+  /// Ámbito para roles: venue:<slug>.
+  slug       String       @unique
+  name       String
+  /// Agrupa en el turnero: «Pádel», «Fútbol 5».
+  group      String
+  /// «Césped», «40 personas».
+  detail     String       @default("")
+  status     VenueStatus  @default(available)
+  statusNote String       @default("")
+  active     Boolean      @default(true)
+  sortOrder  Int          @default(0)
+  createdAt  DateTime     @default(now())
+  slots      AgendaSlot[]
+  rule       BookingRule?
+  tariffs    Tariff[]
+  bookings   Booking[]
+}
+
+enum AgendaKind {
+  block
+  match
+  tournament
+  event
+  school
+  booking
+}
+
+enum AgendaSlotStatus {
+  held
+  confirmed
+  released
+}
+
+/// Ocupación de un espacio en la agenda central. Nunca se superponen dos ocupaciones vigentes
+/// (retenidas o confirmadas): lo garantiza la agenda con un bloqueo por espacio en la transacción.
+model AgendaSlot {
+  id            String           @id @default(cuid())
+  venueId       String
+  venue         Venue            @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  startsAt      DateTime
+  endsAt        DateTime
+  kind          AgendaKind
+  /// Mayor gana: bloqueo > partido > torneo > evento > escuela > reserva.
+  priority      Int
+  status        AgendaSlotStatus @default(confirmed)
+  /// Una retención vence sola: pasada esta hora el turno vuelve a estar libre.
+  holdExpiresAt DateTime?
+  label         String
+  /// Módulo dueño y su referencia (la reserva, el partido…).
+  source        String
+  sourceRef     String
+  createdById   String?
+  releasedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  booking       Booking?
+
+  @@index([venueId, startsAt])
+  @@index([status, holdExpiresAt])
+  @@index([source, sourceRef])
+}
+
+// ───────────── Hito B · Reservas ─────────────
+
+/// Reglas de reserva de un espacio. Sin regla, el espacio no se reserva.
+model BookingRule {
+  venueId        String   @id
+  venue          Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  slotMinutes    Int      @default(60)
+  /// Minutos desde las 00:00 (hora del club).
+  openFrom       Int      @default(480)
+  openTo         Int      @default(1380)
+  maxAdvanceDays Int      @default(14)
+  holdMinutes    Int      @default(10)
+  /// Cancelación sin cargo hasta estas horas antes.
+  cancelHours    Int      @default(24)
+  /// 0 = sin opción de seña; si no, porcentaje de la seña.
+  depositPercent Int      @default(50)
+  payAtClub      Boolean  @default(false)
+  /// Reserva pública sin cuenta (Hito B, segundo tramo).
+  publicBooking  Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
+}
+
+/// Tarifa por franja: días (bit 0 = lunes … bit 6 = domingo) y horario.
+model Tariff {
+  id          String @id @default(cuid())
+  venueId     String
+  venue       Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  label       String
+  days        Int    @default(127)
+  fromMinute  Int
+  toMinute    Int
+  memberPrice Int
+  guestPrice  Int
+
+  @@index([venueId])
+}
+
+enum BookingStatus {
+  held
+  confirmed
+  cancelled
+  expired
+  conflict
+}
+
+enum BookingPayMode {
+  full
+  deposit
+  club
+}
+
+model Booking {
+  id            String         @id @default(cuid())
+  venueId       String
+  venue         Venue          @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  slotId        String?        @unique
+  slot          AgendaSlot?    @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  personId      String
+  person        Person         @relation(fields: [personId], references: [id], onDelete: Restrict)
+  startsAt      DateTime
+  endsAt        DateTime
+  status        BookingStatus  @default(held)
+  payMode       BookingPayMode
+  /// Precio total y lo que se cobra al reservar (todo, la seña o nada si se paga en el club).
+  price         Int
+  chargeAmount  Int
+  memberRate    Boolean
+  chargeId      String?
+  holdExpiresAt DateTime?
+  /// Pagó algo y canceló a tiempo: Contabilidad gestiona el reintegro.
+  refundDue     Int            @default(0)
+  cancelledAt   DateTime?
+  cancelReason  String?
+  createdById   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([personId, startsAt])
+  @@index([venueId, startsAt])
+  @@index([status, holdExpiresAt])
 }
