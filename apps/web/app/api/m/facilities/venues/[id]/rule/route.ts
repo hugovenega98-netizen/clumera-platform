@@ -38,6 +38,7 @@ export async function PUT(
       cancelHours: int(0, 720),
       depositPercent: int(0, 100),
       payAtClub: z.boolean(),
+      publicBooking: z.boolean().default(false),
     }),
   );
   if (!body.ok) return body.response;

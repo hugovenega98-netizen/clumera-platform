@@ -3,7 +3,7 @@ import type { PrismaClient } from '@clumera/db';
 import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } from '@clumera/finance';
 import { createAuthService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
 import { clubDayOf, clubTime, placeSlot } from '@clumera/agenda';
-import { cancelBooking, confirmPaidBookings, createBooking } from '@clumera/module-bookings';
+import { cancelBooking, confirmPaidBookings, createBooking, createBookingSeries, createPublicBooking } from '@clumera/module-bookings';
 import { addTariff, createBlock, createVenue, setBookingRule, setVenueStatus } from '@clumera/module-facilities';
 import { createMatch, createSport, createTeam, recordEvaluation, reportInjury, setLineup, setTeamMember, teamFeeRows } from '@clumera/sports';
 import type { Mailer } from '@clumera/mail';
@@ -325,7 +325,8 @@ async function seedFacilities(db: PrismaClient, padron: Record<string, string>):
     ok(await addTariff(db, admin, id, { label: 'Noche', days: 127, fromMinute: 18 * 60, toMinute: 23 * 60, memberPrice: 9_000_00, guestPrice: 12_000_00 }));
   }
   for (const id of [f51, f52]) {
-    ok(await setBookingRule(db, admin, id, { ...padelRule, openFrom: 9 * 60, payAtClub: true }));
+    // Fútbol 5 se reserva también sin cuenta (lienzo «Público · reservar sin cuenta»: seña 30%).
+    ok(await setBookingRule(db, admin, id, { ...padelRule, openFrom: 9 * 60, payAtClub: true, depositPercent: 30, publicBooking: true }));
     ok(await addTariff(db, admin, id, { label: 'Todo el día', days: 127, fromMinute: 9 * 60, toMinute: 23 * 60, memberPrice: 18_000_00, guestPrice: 24_000_00 }));
   }
   ok(await setBookingRule(db, admin, quincho, { slotMinutes: 240, openFrom: 12 * 60, openTo: 24 * 60, maxAdvanceDays: 60, holdMinutes: 15, cancelHours: 72, depositPercent: 30, payAtClub: true }));
@@ -353,6 +354,12 @@ async function seedFacilities(db: PrismaClient, padron: Record<string, string>):
   await book('Bruno Ferrari', p1, day(1), 19, 'full'); // retenida, esperando el pago
   const cancelled = await book('Camila Torres', quincho, day(10), 20, 'club');
   ok(await cancelBooking(db, padron['Camila Torres']!, cancelled.id, { byManager: false }));
+
+  // Reserva sin cuenta (invitada, seña pagada) y una reserva fija semanal cargada por el encargado.
+  const guest = ok(await createPublicBooking(db, { venueId: f51, startsAt: clubTime(day(2), 22 * 60), payMode: 'deposit', guest: { name: 'Martina Ruiz', email: 'martina.ruiz@lab.clumera.app', phone: '+54 9 11 5555 0101' } }));
+  ok(await recordPayment(db, admin, { payerPersonId: guest.personId, chargeIds: [guest.chargeId!], method: 'transfer' }));
+  await db.$transaction((tx) => confirmPaidBookings(tx, [guest.chargeId!]));
+  ok(await createBookingSeries(db, admin, { venueId: p1, personId: padron['Valentina Rossi']!, weekday: 1, startMinute: 22 * 60, fromDay: today, untilDay: day(8 * 7), label: 'Pádel de los martes' }));
 }
 
 export async function wipeLab(db: PrismaClient): Promise<void> {

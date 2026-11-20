@@ -14,6 +14,11 @@ export const RATE_RULES = {
   resetRequestByLogin: { name: 'reset-login', limit: 3, windowSeconds: 60 * 60 },
   tokenUseByIp: { name: 'token-ip', limit: 20, windowSeconds: 15 * 60 },
   pushTestByAccount: { name: 'push-test', limit: 5, windowSeconds: 10 * 60 },
+  /** Reserva pública sin cuenta: por IP y por email, para que nadie acapare turnos retenidos. */
+  publicBookingByIp: { name: 'pub-book-ip', limit: 10, windowSeconds: 60 * 60 },
+  publicBookingByEmail: { name: 'pub-book-mail', limit: 4, windowSeconds: 60 * 60 },
+  /** Acciones con el enlace de la reserva (pagar, cancelar). */
+  publicBookingLinkByIp: { name: 'pub-link-ip', limit: 30, windowSeconds: 15 * 60 },
 } satisfies Record<string, RateRule>;
 
 export interface RateResult {

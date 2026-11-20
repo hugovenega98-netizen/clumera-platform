@@ -127,6 +127,10 @@ export interface BookInput {
   venueId: string;
   startsAt: Date;
   payMode: PayMode;
+  /** Reservada desde la página pública, sin cuenta. */
+  public?: boolean;
+  /** Turno de una reserva fija (la carga el encargado: sin tope de anticipación, siempre en el club). */
+  seriesId?: string;
 }
 
 /**
@@ -140,12 +144,12 @@ export async function createBooking(db: PrismaClient, actorPersonId: string, inp
   const { day, minutes } = clubDayOf(input.startsAt);
   if (minutes < rule.openFrom || minutes + rule.slotMinutes > rule.openTo || (minutes - rule.openFrom) % rule.slotMinutes !== 0) return fail('invalid_input', 'Ese horario no es un turno de este espacio');
   if (input.startsAt <= now) return fail('invalid_input', 'Ese turno ya pasó');
-  if (day > clubDayOf(new Date(now.getTime() + rule.maxAdvanceDays * 86_400_000)).day) return fail('invalid_input', `Se reserva con hasta ${rule.maxAdvanceDays} días de anticipación`);
+  if (!input.seriesId && day > clubDayOf(new Date(now.getTime() + rule.maxAdvanceDays * 86_400_000)).day) return fail('invalid_input', `Se reserva con hasta ${rule.maxAdvanceDays} días de anticipación`);
   const tariff = tariffFor(v.tariffs, input.startsAt);
   if (!tariff) return fail('invalid_input', 'Ese horario no tiene tarifa: el espacio está cerrado');
   const member = await isMember(db, input.personId, now);
   const price = member ? tariff.memberPrice : tariff.guestPrice;
-  const option = payOptions(price, rule).find((o) => o.mode === input.payMode);
+  const option = input.seriesId && input.payMode === 'club' ? { mode: 'club' as const, amount: 0, available: true, note: 'Reserva fija' } : payOptions(price, rule).find((o) => o.mode === input.payMode);
   if (!option?.available) return fail('invalid_input', 'Esa forma de pago no está habilitada para este espacio');
   const endsAt = new Date(input.startsAt.getTime() + rule.slotMinutes * 60_000);
   const online = input.payMode !== 'club';
@@ -169,11 +173,13 @@ export async function createBooking(db: PrismaClient, actorPersonId: string, inp
           memberRate: member,
           holdExpiresAt: online ? new Date(now.getTime() + rule.holdMinutes * 60_000) : null,
           createdById: actorPersonId,
+          public: input.public ?? false,
+          seriesId: input.seriesId ?? null,
         },
       });
       const slot = await placeSlotTx(
         tx,
-        { venueId: v.id, startsAt: input.startsAt, endsAt, kind: 'booking', label: 'Reserva', source: 'bookings', sourceRef: b.id, createdById: actorPersonId, holdMinutes: online ? rule.holdMinutes : undefined },
+        { venueId: v.id, startsAt: input.startsAt, endsAt, kind: 'booking', label: input.seriesId ? 'Reserva fija' : 'Reserva', source: 'bookings', sourceRef: b.id, createdById: actorPersonId, holdMinutes: online ? rule.holdMinutes : undefined },
         now,
       );
       if (!slot.ok) throw slot.error;
@@ -320,13 +326,11 @@ export async function cancelBooking(
 
 // ───────────── Consultas ─────────────
 
-export async function myBookings(db: PrismaClient, personIds: string[], now = new Date()) {
-  const rows = await db.booking.findMany({
-    where: { personId: { in: personIds }, OR: [{ startsAt: { gte: new Date(now.getTime() - 7 * 86_400_000) } }, { status: { in: ['held', 'conflict'] } }] },
-    orderBy: { startsAt: 'asc' },
-    take: 50,
-    include: { venue: { select: { name: true, group: true, rule: { select: { cancelHours: true } } } }, person: { select: { firstName: true } } },
-  });
+const VIEW_INCLUDE = { venue: { select: { name: true, group: true, rule: { select: { cancelHours: true } } } }, person: { select: { firstName: true } } } as const;
+type ViewRow = Prisma.BookingGetPayload<{ include: typeof VIEW_INCLUDE }>;
+
+/** Suma a cada reserva lo pagado, lo pendiente y si todavía se puede cancelar online. */
+async function withCharges(db: PrismaClient, rows: ViewRow[], now: Date) {
   const charges = await db.charge.findMany({ where: { id: { in: rows.flatMap((r) => (r.chargeId ? [r.chargeId] : [])) } }, select: { id: true, amount: true, paidAmount: true, status: true } });
   const byId = new Map(charges.map((c) => [c.id, c]));
   return rows.map((r) => {
@@ -343,12 +347,27 @@ export async function myBookings(db: PrismaClient, personIds: string[], now = ne
   });
 }
 
-/** Reservas de un día para el encargado (con nombre de quien reservó). */
+export async function myBookings(db: PrismaClient, personIds: string[], now = new Date()) {
+  const rows = await db.booking.findMany({
+    where: { personId: { in: personIds }, OR: [{ startsAt: { gte: new Date(now.getTime() - 7 * 86_400_000) } }, { status: { in: ['held', 'conflict'] } }] },
+    orderBy: { startsAt: 'asc' },
+    take: 50,
+    include: VIEW_INCLUDE,
+  });
+  return withCharges(db, rows, now);
+}
+
+/** Una reserva con su estado de pago (enlace de la reserva pública). */
+export async function bookingView(db: PrismaClient, id: string, now = new Date()) {
+  const row = await db.booking.findUnique({ where: { id }, include: VIEW_INCLUDE });
+  return row ? (await withCharges(db, [row], now))[0]! : null;
+}
+
 export async function dayBookings(db: PrismaClient, day: string, venueIds?: string[]) {
   return db.booking.findMany({
     where: { startsAt: { gte: clubTime(day, 0), lt: clubTime(day, 24 * 60) }, ...(venueIds ? { venueId: { in: venueIds } } : {}) },
     orderBy: [{ startsAt: 'asc' }],
-    include: { venue: { select: { name: true, slug: true } }, person: { select: { firstName: true, lastName: true } } },
+    include: { venue: { select: { name: true, slug: true } }, person: { select: { firstName: true, lastName: true, phone: true } } },
   });
 }
 

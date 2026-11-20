@@ -14,6 +14,10 @@ describe('barrera de módulos', () => {
 
   it('las páginas de un módulo apagado van a «no disponible»', () => {
     expect(decideModuleAccess('/reservas', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'bookings' });
+    // La reserva pública sin cuenta también es del módulo (y su enlace firmado).
+    expect(decideModuleAccess('/reservar', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'bookings' });
+    expect(decideModuleAccess('/reservar/r/abc.def', catalog, coreOnly)).toEqual({ action: 'deny-page', moduleId: 'bookings' });
+    expect(decideModuleAccess('/api/m/bookings/public', catalog, coreOnly)).toEqual({ action: 'deny-api', moduleId: 'bookings' });
   });
 
   it('deja pasar módulos licenciados, core y rutas sin dueño', () => {

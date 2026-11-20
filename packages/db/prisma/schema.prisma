@@ -43,6 +43,7 @@ model Person {
   injuryReports       InjuryReport[]
   matchFollows        MatchFollow[]
   bookings            Booking[]
+  bookingSeries       BookingSeries[]
   paymentsMade        Payment[]             @relation("PaymentPayer")
 
   @@index([lastName, firstName])
@@ -811,23 +812,24 @@ enum VenueStatus {
 
 /// Espacio físico del club (cancha, pileta, salón). El estado físico va aparte de la ocupación.
 model Venue {
-  id         String       @id @default(cuid())
+  id            String          @id @default(cuid())
   /// Ámbito para roles: venue:<slug>.
-  slug       String       @unique
-  name       String
+  slug          String          @unique
+  name          String
   /// Agrupa en el turnero: «Pádel», «Fútbol 5».
-  group      String
+  group         String
   /// «Césped», «40 personas».
-  detail     String       @default("")
-  status     VenueStatus  @default(available)
-  statusNote String       @default("")
-  active     Boolean      @default(true)
-  sortOrder  Int          @default(0)
-  createdAt  DateTime     @default(now())
-  slots      AgendaSlot[]
-  rule       BookingRule?
-  tariffs    Tariff[]
-  bookings   Booking[]
+  detail        String          @default("")
+  status        VenueStatus     @default(available)
+  statusNote    String          @default("")
+  active        Boolean         @default(true)
+  sortOrder     Int             @default(0)
+  createdAt     DateTime        @default(now())
+  slots         AgendaSlot[]
+  rule          BookingRule?
+  tariffs       Tariff[]
+  bookings      Booking[]
+  bookingSeries BookingSeries[]
 }
 
 enum AgendaKind {
@@ -947,10 +949,44 @@ model Booking {
   cancelledAt   DateTime?
   cancelReason  String?
   createdById   String?
+  /// Reserva fija a la que pertenece este turno (uno por semana).
+  seriesId      String?
+  series        BookingSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  /// Reservada desde la página pública, sin cuenta.
+  public        Boolean        @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
   @@index([personId, startsAt])
+  @@index([seriesId])
   @@index([venueId, startsAt])
   @@index([status, holdExpiresAt])
+}
+
+enum BookingSeriesStatus {
+  active
+  cancelled
+}
+
+/// Reserva fija: el mismo turno todas las semanas entre dos fechas (la carga el encargado).
+model BookingSeries {
+  id          String              @id @default(cuid())
+  venueId     String
+  venue       Venue               @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  personId    String
+  person      Person              @relation(fields: [personId], references: [id], onDelete: Restrict)
+  /// 0 = lunes … 6 = domingo (hora del club).
+  weekday     Int
+  startMinute Int
+  /// Primer y último día (aaaa-mm-dd).
+  fromDay     String
+  untilDay    String
+  label       String
+  status      BookingSeriesStatus @default(active)
+  createdById String
+  createdAt   DateTime            @default(now())
+  cancelledAt DateTime?
+  bookings    Booking[]
+
+  @@index([venueId])
 }

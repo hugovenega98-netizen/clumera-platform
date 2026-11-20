@@ -55,6 +55,8 @@ export interface RuleInput {
   cancelHours: number;
   depositPercent: number;
   payAtClub: boolean;
+  /** Se puede reservar sin cuenta desde /reservar (tarifa general, pago online). */
+  publicBooking?: boolean;
 }
 
 export async function setBookingRule(db: PrismaClient, actorPersonId: string, venueId: string, rule: RuleInput): Promise<Result<{ venueId: string }>> {

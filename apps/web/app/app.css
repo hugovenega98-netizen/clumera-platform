@@ -1653,3 +1653,49 @@
     padding-left: 8px;
   }
 }
+
+/* ───────── Público · reservar sin cuenta ───────── */
+.pub-shell {
+  min-height: 100dvh;
+  background: var(--cx-bg);
+}
+.pub-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cx-space-3);
+  padding: max(env(safe-area-inset-top), 10px) var(--cx-space-4) 10px;
+  background: var(--cx-surface);
+  border-bottom: 1px solid var(--cx-line);
+}
+.pub-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-space-2);
+  min-height: var(--cx-touch);
+  color: inherit;
+  text-decoration: none;
+}
+.pub-main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--cx-space-4) var(--cx-space-4) calc(var(--cx-space-6) + env(safe-area-inset-bottom));
+}
+.tag-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--cx-space-1);
+  justify-content: flex-end;
+}
+@media (min-width: 981px) {
+  .pub-main {
+    padding-top: var(--cx-space-6);
+  }
+  /* Lienzo: formulario a la izquierda, resumen fijo a la derecha. */
+  .booking-layout--public {
+    grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr);
+  }
+}
