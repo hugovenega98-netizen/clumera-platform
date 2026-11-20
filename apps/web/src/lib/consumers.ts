@@ -3,6 +3,7 @@ import { processOutbox, type OutboxConsumer, type PrismaClient } from '@clumera/
 import { formatMoney, receiptNumber } from '@clumera/finance';
 import { bookingTitle, confirmPaidBookings, SERIES_CANCEL_REASON } from '@clumera/module-bookings';
 import { confirmPaidCamp } from '@clumera/module-summer';
+import { confirmPaidTeams } from '@clumera/module-tournaments';
 import { deliverPendingPush, notify, vapidFromEnv } from '@clumera/notifications';
 import { guardiansOf } from '@clumera/identity';
 import { eventNotice, matchAudience } from '@clumera/sports';
@@ -37,6 +38,15 @@ export const consumers: OutboxConsumer[] = [
     async handle(event, tx) {
       const p = event.payload as { chargeIds?: string[] };
       await confirmPaidCamp(tx as unknown as PrismaClient, p.chargeIds ?? []);
+    },
+  },
+  {
+    // Finanzas → Torneos: la inscripción paga confirma el equipo.
+    name: 'tournaments:payment-approved',
+    types: ['payment.approved'],
+    async handle(event, tx) {
+      const p = event.payload as { chargeIds?: string[] };
+      await confirmPaidTeams(tx, p.chargeIds ?? []);
     },
   },
   {

@@ -26,6 +26,7 @@
     "@clumera/module-access": "*",
     "@clumera/module-schools": "*",
     "@clumera/module-summer": "*",
+    "@clumera/module-tournaments": "*",
     "@clumera/module-bookings": "*",
     "@clumera/module-facilities": "*",
     "@clumera/sports": "*",

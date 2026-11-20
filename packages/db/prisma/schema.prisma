@@ -1236,3 +1236,109 @@ model EnrollmentDocument {
 
   @@unique([enrollmentId, documentId])
 }
+
+// ───────────── Torneos ─────────────
+
+enum TournamentStatus {
+  registration
+  groups
+  knockout
+  finished
+}
+
+/// Torneo (relámpago o de liga): inscripción de equipos, zonas con todos contra todos y eliminación.
+/// La tabla no se guarda: se calcula siempre de los resultados (una corrección la recalcula sola).
+model Tournament {
+  id                String            @id @default(cuid())
+  slug              String            @unique
+  name              String
+  /// Modalidad del catálogo de Deportes (football_5, hockey…): define puntos y si hay empate.
+  sportCode         String
+  description       String?
+  status            TournamentStatus  @default(registration)
+  maxTeams          Int
+  zoneCount         Int
+  qualifiersPerZone Int
+  /// Centavos; 0 = sin inscripción paga.
+  entryFee          Int               @default(0)
+  /// Día de juego (aaaa-mm-dd) y horario para armar el fixture.
+  playDay           String
+  firstMatchMinute  Int
+  matchMinutes      Int
+  /// Canchas donde se juega (texto visible) y, si se dan, espacios de la agenda central que ocupa.
+  places            String[]
+  venueIds          String[]
+  publicPage        Boolean           @default(true)
+  createdById       String
+  createdAt         DateTime          @default(now())
+  teams             TournamentTeam[]
+  matches           TournamentMatch[]
+
+  @@index([status])
+}
+
+enum TournamentTeamStatus {
+  registered
+  confirmed
+  withdrawn
+}
+
+model TournamentTeam {
+  id           String               @id @default(cuid())
+  tournamentId String
+  tournament   Tournament           @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String
+  /// Quien inscribió (capitán): recibe el cargo de la inscripción. Nunca se muestra en la página pública.
+  captainId    String
+  zone         String?
+  /// Orden de sorteo dentro de la zona.
+  seed         Int?
+  status       TournamentTeamStatus @default(registered)
+  chargeId     String?
+  createdAt    DateTime             @default(now())
+  homeMatches  TournamentMatch[]    @relation("TournamentHome")
+  awayMatches  TournamentMatch[]    @relation("TournamentAway")
+
+  @@unique([tournamentId, name])
+}
+
+enum TournamentStage {
+  group
+  semi
+  final
+  third
+}
+
+enum TournamentMatchStatus {
+  scheduled
+  played
+}
+
+model TournamentMatch {
+  id           String                @id @default(cuid())
+  tournamentId String
+  tournament   Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  stage        TournamentStage
+  zone         String?
+  round        Int
+  /// Orden dentro de la etapa (llave: 1 y 2 son las semifinales).
+  slot         Int
+  homeTeamId   String
+  homeTeam     TournamentTeam        @relation("TournamentHome", fields: [homeTeamId], references: [id], onDelete: Restrict)
+  awayTeamId   String
+  awayTeam     TournamentTeam        @relation("TournamentAway", fields: [awayTeamId], references: [id], onDelete: Restrict)
+  startsAt     DateTime
+  place        String
+  status       TournamentMatchStatus @default(scheduled)
+  homeScore    Int?
+  awayScore    Int?
+  /// En eliminación con empate: quien pasa (penales).
+  winnerTeamId String?
+  /// Correcciones oficiales: cuántas veces se cargó el resultado.
+  version      Int                   @default(0)
+  recordedById String?
+  recordedAt   DateTime?
+  createdAt    DateTime              @default(now())
+
+  @@index([tournamentId, stage, round])
+}

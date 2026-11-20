@@ -2048,3 +2048,236 @@
   font-size: var(--cx-fs-small);
   color: var(--cx-text-2);
 }
+
+/* ── Torneos (lienzo «Torneos · fixture y tabla» y «Página pública del torneo») ── */
+.tcards,
+.tzones,
+.tgrid {
+  display: grid;
+  gap: var(--cx-space-4);
+  grid-template-columns: minmax(0, 1fr);
+}
+.tzone {
+  min-width: 0;
+}
+.tsec-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cx-space-3);
+}
+.tsec-head > div:first-child {
+  flex: 1 1 260px;
+}
+.tmatches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+/* Móvil: hora y equipos en una línea, cancha y estado debajo. */
+.tmatch {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: 'time home score away' 'time meta meta tag' 'action action action action';
+  gap: var(--cx-space-1) var(--cx-space-2);
+  align-items: center;
+  padding: var(--cx-space-3) 0;
+}
+.tmatch + .tmatch {
+  border-top: 1px solid var(--cx-line-soft, var(--cx-line));
+}
+.tmatch__time {
+  grid-area: time;
+  font: 700 15px var(--cx-font-cond);
+  color: var(--cx-primary);
+  align-self: start;
+}
+.tmatch__team {
+  grid-area: away;
+  overflow-wrap: anywhere;
+}
+.tmatch__team--home {
+  grid-area: home;
+  text-align: right;
+}
+.tmatch__team.is-winner::after {
+  content: ' ✓';
+  color: var(--cx-ok);
+}
+.tmatch__score {
+  grid-area: score;
+  font: 700 18px var(--cx-font-cond);
+  color: var(--cx-title);
+  text-align: center;
+  min-width: 52px;
+  font-variant-numeric: tabular-nums;
+}
+.tmatch__meta {
+  grid-area: meta;
+  font-size: var(--cx-fs-small);
+}
+.tmatch > .cx-tag {
+  grid-area: tag;
+  justify-self: end;
+}
+.tmatch__action {
+  grid-area: action;
+}
+.tresult {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cx-space-2);
+  padding: var(--cx-space-2) 0 0;
+}
+.tresult__scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cx-space-2);
+}
+.tresult__winner {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cx-space-2) var(--cx-space-4);
+}
+.tresult__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cx-space-2);
+  min-height: var(--cx-touch);
+}
+.tresult__radio input {
+  width: 22px;
+  height: 22px;
+}
+.ttable-wrap {
+  overflow-x: auto;
+}
+.ttable {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.ttable th,
+.ttable td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--cx-line);
+  text-align: left;
+}
+.ttable thead th {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cx-text-2);
+}
+.ttable abbr {
+  text-decoration: none;
+}
+.ttable .n {
+  text-align: center;
+  width: 40px;
+}
+.ttable tbody th {
+  font-weight: 600;
+}
+.ttable tr.is-qualified th {
+  box-shadow: inset 3px 0 0 var(--cx-accent);
+  padding-left: 10px;
+}
+.tpodium {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-space-3);
+  padding: var(--cx-space-3);
+  border-radius: var(--cx-r-card);
+  background: var(--cx-ok-bg);
+}
+.tpodium > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.tpodium strong {
+  font: 700 24px var(--cx-font-cond);
+  color: var(--cx-title);
+}
+.tpodium__crest {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cx-surface);
+  color: var(--cx-primary);
+  font: 700 18px var(--cx-font-cond);
+  margin: 0 auto 4px;
+}
+.thero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cx-space-2);
+  padding: var(--cx-space-5) var(--cx-space-4);
+  border-radius: var(--cx-r-card);
+  background: var(--cx-primary-deep);
+  color: var(--cx-on-primary);
+}
+.thero h1 {
+  color: var(--cx-on-primary);
+  margin: 0;
+  line-height: 1.05;
+}
+.thero__kicker {
+  font: 700 13px var(--cx-font-cond);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cx-on-primary-2);
+}
+.tlast__score {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  text-align: center;
+  gap: var(--cx-space-3);
+}
+.tlast__score > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tlast__score strong {
+  font: 700 44px/1 var(--cx-font-cond);
+  color: var(--cx-title);
+  font-variant-numeric: tabular-nums;
+}
+.tteams {
+  margin: 0;
+  padding-left: 1.2em;
+  columns: 2;
+}
+@media (min-width: 720px) {
+  .tcards,
+  .tzones,
+  .tgrid {
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  }
+}
+@media (min-width: 981px) {
+  /* Escritorio (lienzo): una fila por partido con cancha, estado y carga a la derecha. */
+  .tmatch {
+    grid-template-columns: 56px minmax(0, 1fr) 70px minmax(0, 1fr) 170px 110px;
+    grid-template-areas: 'time home score away meta tag' 'action action action action action action';
+  }
+  .tmatch__time {
+    align-self: center;
+  }
+  .thero {
+    padding: var(--cx-space-6);
+  }
+  .thero h1 {
+    font-size: 44px;
+  }
+}

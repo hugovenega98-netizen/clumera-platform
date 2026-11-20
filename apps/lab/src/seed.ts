@@ -5,6 +5,7 @@ import { createAuthService, createCredentialService, DEFAULT_AUTH_SETTINGS, sync
 import { checkAccess } from '@clumera/module-access';
 import { createGroup, createProgram, enrollInSchool, markAttendance } from '@clumera/module-schools';
 import { enrollInCamp, submitCampDocument } from '@clumera/module-summer';
+import { createTournament, drawAndSchedule, recordResult, registerTeam } from '@clumera/module-tournaments';
 import { clubDayOf, clubTime, placeSlot } from '@clumera/agenda';
 import { cancelBooking, confirmPaidBookings, createBooking, createBookingSeries, createPublicBooking } from '@clumera/module-bookings';
 import { addTariff, createBlock, createVenue, setBookingRule, setVenueStatus } from '@clumera/module-facilities';
@@ -162,6 +163,7 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   await seedAccess(db, padron);
   await seedSchools(db, (await db.person.findFirstOrThrow({ where: { email: 'admin@lab.clumera.app' }, select: { id: true } })).id);
   await seedCamp(db, padron);
+  await seedTournaments(db, (await db.person.findFirstOrThrow({ where: { email: 'organizador@lab.clumera.app' }, select: { id: true } })).id);
 
   return { people: await db.person.count() };
 }
@@ -471,6 +473,33 @@ async function seedCamp(db: PrismaClient, padron: Record<string, string>): Promi
  * suspendida), revocadas (Camila perdió el carnet) y de reserva (la de Martina Ruiz, sin cuenta);
  * algunos intentos de hoy validados por Recepción.
  */
+/**
+ * Torneos (caso D): un relámpago de Fútbol 5 el próximo sábado ya sorteado, con la primera ronda
+ * jugada (tabla calculada y página pública), y uno de vóley con la inscripción abierta para que el
+ * socio inscriba su equipo. Los equipos sembrados no generan cargos: no cambian Finanzas.
+ */
+async function seedTournaments(db: PrismaClient, organizer: string): Promise<void> {
+  const ok = <T,>(r: { ok: true; value: T } | { ok: false; error: Error }): T => {
+    if (!r.ok) throw r.error;
+    return r.value;
+  };
+  const now = clubDayOf(new Date());
+  const saturday = new Date(Date.parse(`${now.day}T12:00:00Z`) + ((5 - now.weekday + 7) % 7 || 7) * 86_400_000).toISOString().slice(0, 10);
+  const inTwoWeeks = new Date(Date.parse(`${saturday}T12:00:00Z`) + 14 * 86_400_000).toISOString().slice(0, 10);
+  const relampago = ok(await createTournament(db, organizer, { slug: 'relampago-verano', name: 'Relámpago de Verano', sportCode: 'football_5', description: 'Fútbol 5 mixto, un sábado de 14 a 18', maxTeams: 8, zoneCount: 2, qualifiersPerZone: 2, entryFee: 0, playDay: saturday, firstMatchMinute: 14 * 60, matchMinutes: 30, places: ['F5-1', 'F5-2'] })).id;
+  const teams: string[] = [];
+  for (const name of ['Rayo FC', 'Los Halcones', 'Atlético 5', 'Los Pibes', 'Deportivo Sur', 'Unión Norte', 'Fénix', 'La Banda']) teams.push(ok(await registerTeam(db, organizer, { tournamentId: relampago, name })).id);
+  ok(await drawAndSchedule(db, organizer, relampago, teams));
+  const first = await db.tournamentMatch.findMany({ where: { tournamentId: relampago, round: 1 }, orderBy: { slot: 'asc' } });
+  const scores: Array<[number, number]> = [[3, 1], [2, 2], [0, 1], [4, 2]];
+  for (const [i, m] of first.entries()) ok(await recordResult(db, organizer, m.id, { homeScore: scores[i % 4]![0], awayScore: scores[i % 4]![1] }));
+
+  const voley = ok(await createTournament(db, organizer, { slug: 'voley-primavera', name: 'Vóley de Primavera', sportCode: 'volleyball', maxTeams: 6, zoneCount: 1, qualifiersPerZone: 2, entryFee: 0, playDay: inTwoWeeks, firstMatchMinute: 10 * 60, matchMinutes: 40, places: ['Gimnasio'] })).id;
+  for (const name of ['Las Rápidas', 'Bloqueo Total', 'Saque y Red']) ok(await registerTeam(db, organizer, { tournamentId: voley, name }));
+  // Desde acá, cada equipo nuevo paga su inscripción (va a Pagos de su capitán).
+  await db.tournament.update({ where: { id: voley }, data: { entryFee: 15_000_00 } });
+}
+
 async function seedAccess(db: PrismaClient, padron: Record<string, string>): Promise<void> {
   const main = await db.accessPoint.create({ data: { slug: 'principal', name: 'Acceso principal', sortOrder: 0 } });
   await db.accessPoint.create({ data: { slug: 'pileta', name: 'Pileta', sortOrder: 1 } });

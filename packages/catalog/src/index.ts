@@ -6,7 +6,7 @@ import { manifest as facilities } from '@clumera/module-facilities/manifest';
 import { manifest as schools } from '@clumera/module-schools/manifest';
 import { manifest as store } from '@clumera/module-store';
 import { manifest as summer } from '@clumera/module-summer/manifest';
-import { manifest as tournaments } from '@clumera/module-tournaments';
+import { manifest as tournaments } from '@clumera/module-tournaments/manifest';
 import { coreManifests } from './core';
 
 export * from './core';

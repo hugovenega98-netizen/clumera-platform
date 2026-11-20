@@ -94,5 +94,6 @@ export const NAV_ICON: Record<string, string> = {
   'schools:attendance-admin': 'people',
   'schools:manage': 'activities',
   'summer:manage': 'sun',
+  'tournaments:manage': 'trophy',
   'bookings:series': 'calendar',
 };
