@@ -1862,3 +1862,24 @@
     font-size: 28px;
   }
 }
+
+/* ───────── Convocatoria: respuesta guardada ───────── */
+.callup-status {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: var(--cx-fs-small);
+  font-weight: 600;
+}
+.callup-status--ok {
+  background: var(--cx-ok-bg);
+  color: var(--cx-ok);
+}
+.callup-status--bad {
+  background: var(--cx-bad-bg);
+  color: var(--cx-bad);
+}
+.callup-status--warn {
+  background: var(--cx-warn-bg, #fef0c7);
+  color: var(--cx-warn, #93370d);
+}

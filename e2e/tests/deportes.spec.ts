@@ -26,8 +26,20 @@ test('socia: dos deportes y su hijo en una sola cuenta; responde la convocatoria
   await expect(page.getByRole('region', { name: 'Vóley · Mixto' })).toBeVisible();
   const tomas = page.getByRole('region', { name: 'Rugby · M12 · Tomás' });
   await expect(tomas.getByText('Club Norte')).toBeVisible();
+  // Antes de responder, la convocatoria dice que el coach espera la confirmación.
+  await expect(tomas.getByRole('status')).toHaveText('Todavía no respondiste: el coach espera tu confirmación.');
   await tomas.getByRole('button', { name: 'Voy' }).click();
   await expect(tomas.getByRole('button', { name: 'Voy' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(tomas.getByRole('status')).toHaveText('Listo. Confirmaste que vas. El coach ya lo ve en el plantel.');
+  // Se puede cambiar: «No puedo» también queda escrito.
+  await tomas.getByRole('button', { name: 'No puedo' }).click();
+  await expect(tomas.getByRole('button', { name: 'No puedo' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(tomas.getByRole('status')).toHaveText('Listo. Avisaste que no podés. El coach ya lo ve y quedás fuera de la formación.');
+  // Al volver, la respuesta guardada sigue a la vista.
+  await page.reload();
+  await expect(tomas.getByRole('status')).toHaveText('Avisaste que no podés. El coach ya lo ve y quedás fuera de la formación.');
+  await tomas.getByRole('button', { name: 'Voy' }).click();
+  await expect(tomas.getByRole('status')).toHaveText('Listo. Confirmaste que vas. El coach ya lo ve en el plantel.');
   await expectNoHorizontalScroll(page);
 
   // Cargos separados por concepto: cuota, cada deporte y lo del hijo.

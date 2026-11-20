@@ -16,28 +16,52 @@ async function send(method: 'POST' | 'DELETE', url: string, body?: unknown): Pro
   return { ok: false, message: ((await res.json().catch(() => ({}))) as { error?: { message?: string } }).error?.message ?? 'No se pudo.' };
 }
 
-/** «Voy» / «No puedo» para una convocatoria (la persona o su responsable). */
+/** Lo que queda escrito bajo los botones, según la respuesta guardada. */
+const CALLUP_STATUS: Record<string, { text: string; tone: string }> = {
+  going: { text: 'Confirmaste que vas. El coach ya lo ve en el plantel.', tone: 'callup-status--ok' },
+  not_going: { text: 'Avisaste que no podés. El coach ya lo ve y quedás fuera de la formación.', tone: 'callup-status--bad' },
+  pending: { text: 'Todavía no respondiste: el coach espera tu confirmación.', tone: 'callup-status--warn' },
+};
+
+/**
+ * «Voy» / «No puedo» para una convocatoria (la persona o su responsable). Mientras guarda, los botones
+ * se desactivan y dicen «Guardando…»; después queda escrita la respuesta. Se puede cambiar hasta que
+ * empieza el partido.
+ */
 export function CallupButtons({ matchId, personId, response, who }: { matchId: string; personId: string; response: string; who?: string }) {
   const router = useRouter();
   const [error, setError] = useState('');
   const [current, setCurrent] = useState(response);
+  const [saving, setSaving] = useState<'going' | 'not_going' | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   async function answer(r: 'going' | 'not_going') {
+    if (saving) return;
     setError('');
+    setJustSaved(false);
+    setSaving(r);
     const res = await send('POST', `/api/sports/matches/${matchId}/callup`, { personId, response: r });
-    if (!res.ok) return setError(res.message ?? '');
+    setSaving(null);
+    if (!res.ok) return setError(res.message || 'No se pudo guardar la respuesta. Probá de nuevo.');
     setCurrent(r);
+    setJustSaved(true);
     router.refresh();
   }
+  const status = CALLUP_STATUS[current] ?? CALLUP_STATUS.pending!;
   return (
     <div className="cx-stack" style={{ gap: 'var(--cx-space-2)' }}>
-      <div className="adm-actions" role="group" aria-label={`Convocatoria${who ? ` de ${who}` : ''}`}>
-        <Button variant={current === 'going' ? 'primary' : 'secondary'} aria-pressed={current === 'going'} onClick={() => answer('going')}>
-          Voy
+      <div className="adm-actions" role="group" aria-label={`Convocatoria${who ? ` de ${who}` : ''}`} aria-busy={saving !== null}>
+        <Button variant={current === 'going' ? 'primary' : 'secondary'} aria-pressed={current === 'going'} disabled={saving !== null} onClick={() => answer('going')}>
+          {saving === 'going' ? 'Guardando…' : <>{current === 'going' ? <span aria-hidden="true">✓ </span> : null}Voy</>}
         </Button>
-        <Button variant={current === 'not_going' ? 'primary' : 'secondary'} aria-pressed={current === 'not_going'} onClick={() => answer('not_going')}>
-          No puedo
+        <Button variant={current === 'not_going' ? 'primary' : 'secondary'} aria-pressed={current === 'not_going'} disabled={saving !== null} onClick={() => answer('not_going')}>
+          {saving === 'not_going' ? 'Guardando…' : <>{current === 'not_going' ? <span aria-hidden="true">✓ </span> : null}No puedo</>}
         </Button>
       </div>
+      {/* role="status": el lector de pantalla anuncia la respuesta guardada. */}
+      <p className={`callup-status ${status.tone}`} role="status">
+        {justSaved ? 'Listo. ' : ''}
+        {status.text}
+      </p>
       {error ? <Notice tone="bad">{error}</Notice> : null}
     </div>
   );
