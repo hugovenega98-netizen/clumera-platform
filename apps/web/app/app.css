@@ -1287,3 +1287,369 @@
     align-items: start;
   }
 }
+
+/* ───────── Reservas (lienzo «Reservas · turnero» y «Confirmar y pagar») ───────── */
+.seg-tabs {
+  display: flex;
+  background: var(--cx-line-soft);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 3px;
+  max-width: 420px;
+}
+.seg-tabs a {
+  flex: 1;
+  min-height: var(--cx-touch);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--cx-fs-small);
+  color: var(--cx-text-2);
+  text-decoration: none;
+}
+.seg-tabs a[aria-current='page'] {
+  background: var(--cx-surface);
+  color: var(--cx-title);
+}
+.booking-layout {
+  display: grid;
+  gap: var(--cx-space-4);
+  align-items: start;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cx-space-2);
+}
+.chip {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--cx-touch);
+  padding: 6px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--cx-line);
+  background: var(--cx-surface);
+  color: var(--cx-title);
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.2;
+}
+.chip small {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--cx-text-2);
+}
+.chip[aria-pressed='true'] {
+  background: var(--cx-primary);
+  border-color: var(--cx-primary);
+  color: var(--cx-on-primary);
+}
+.chip[aria-pressed='true'] small {
+  color: var(--cx-on-primary-2);
+}
+.chip--small {
+  font-weight: 600;
+}
+.chip-row--days {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.chip--day {
+  align-items: center;
+  min-width: 52px;
+  font-family: var(--cx-font-cond);
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--cx-button);
+}
+.chip--day b {
+  font-size: 20px;
+  color: var(--cx-title);
+}
+.chip--day[aria-pressed='true'] b {
+  color: var(--cx-on-primary);
+}
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cx-space-2);
+}
+.slot {
+  min-height: 56px;
+  border-radius: 12px;
+  border: 1px solid var(--cx-line-strong);
+  background: var(--cx-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--cx-title);
+  text-decoration: none;
+  line-height: 1.15;
+}
+.slot small {
+  font-weight: 500;
+  font-size: 11px;
+}
+.slot--free small {
+  color: var(--cx-ok);
+}
+.slot--free:hover {
+  border-color: var(--cx-button);
+  background: color-mix(in srgb, var(--cx-button) 6%, var(--cx-surface));
+}
+.slot--busy,
+.slot--closed,
+.slot--past {
+  background: var(--cx-line-soft);
+  border-color: var(--cx-line-soft);
+  color: var(--cx-text-2);
+  font-weight: 600;
+}
+.pay-options {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--cx-space-2);
+}
+.pay-option {
+  display: flex;
+  gap: var(--cx-space-3);
+  align-items: flex-start;
+  padding: var(--cx-space-3);
+  border: 1px solid var(--cx-line);
+  border-radius: 12px;
+  background: var(--cx-surface);
+  cursor: pointer;
+  min-height: var(--cx-touch);
+}
+.pay-option > span {
+  display: grid;
+}
+.pay-option input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--cx-button);
+}
+.pay-option--on {
+  border: 2px solid var(--cx-button);
+  background: color-mix(in srgb, var(--cx-button) 6%, var(--cx-surface));
+}
+.pay-option--off {
+  background: var(--cx-line-soft);
+  cursor: not-allowed;
+}
+@media (min-width: 600px) {
+  .slot-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (min-width: 981px) {
+  .booking-layout {
+    grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
+  }
+}
+
+/* ───────── Agenda central (lienzo «Instalaciones · agenda central») ───────── */
+.agenda-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cx-space-3) var(--cx-space-4);
+}
+.agenda-bar h1 {
+  flex: 1 1 auto;
+}
+.day-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-space-2);
+}
+.day-nav b {
+  text-align: center;
+}
+.day-nav .cx-btn {
+  min-width: var(--cx-touch);
+  padding: 0 12px;
+}
+.agenda-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cx-space-2) var(--cx-space-4);
+  font-size: var(--cx-fs-small);
+}
+.agenda-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agenda-legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  padding: 0;
+}
+.ag {
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  line-height: 1.25;
+  list-style: none;
+}
+.ag--match {
+  background: #d6e6f3;
+  color: #08304f;
+}
+.ag--booking {
+  background: #b9efe9;
+  color: #05302c;
+}
+.ag--school {
+  background: #e4defc;
+  color: #3e1c96;
+}
+.ag--tournament {
+  background: #fbd5b0;
+  color: #6a2a08;
+}
+.ag--event {
+  background: var(--cx-button);
+  color: #fff;
+}
+.ag--block {
+  background: var(--cx-bad-bg);
+  color: #912018;
+  border: 1px dashed var(--cx-bad);
+}
+.ag--held {
+  background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255, 255, 255, 0.55) 6px 12px);
+}
+.agenda {
+  padding: var(--cx-space-3);
+}
+.agenda__grid {
+  display: grid;
+  gap: var(--cx-space-3);
+}
+.agenda__hours {
+  display: none;
+}
+.agenda__row {
+  display: grid;
+  gap: 6px;
+  padding-top: var(--cx-space-2);
+  border-top: 1px solid var(--cx-line-soft);
+}
+.agenda__row:first-of-type {
+  border-top: 0;
+}
+.agenda__name {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.agenda__name small {
+  color: var(--cx-text-2);
+  font-size: 12px;
+}
+.agenda__track {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.agenda__track .cx-link-button {
+  margin-left: 6px;
+}
+.agenda__empty {
+  list-style: none;
+  font-size: var(--cx-fs-small);
+}
+.day-picks {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.day-picks legend {
+  margin-bottom: 4px;
+}
+.day-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--cx-touch);
+  padding: 0 10px;
+  border: 1px solid var(--cx-line);
+  border-radius: 10px;
+  font-weight: 600;
+}
+/* Escritorio: espacios en filas y horas en columnas de media hora. */
+@media (min-width: 981px) {
+  .agenda {
+    overflow-x: auto;
+  }
+  .agenda__grid {
+    min-width: 900px;
+    gap: 0;
+  }
+  .agenda__hours,
+  .agenda__row {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+  }
+  .agenda__hours > div {
+    display: grid;
+    grid-template-columns: repeat(calc(var(--ag-cols) / 2), minmax(0, 1fr));
+  }
+  .agenda__hours span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cx-text-2);
+    padding: 0 0 6px 4px;
+    border-left: 1px solid var(--cx-line);
+  }
+  .agenda__row {
+    padding: 0;
+    border-top: 1px solid var(--cx-line-soft);
+  }
+  .agenda__name {
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 10px 8px 0;
+    align-self: center;
+  }
+  .agenda__track {
+    grid-template-columns: repeat(var(--ag-cols), minmax(0, 1fr));
+    grid-auto-flow: dense;
+    gap: 4px 0;
+    min-height: 52px;
+    padding: 5px 0;
+    background-image: repeating-linear-gradient(90deg, var(--cx-line-soft) 0 1px, transparent 1px calc(100% / (var(--ag-cols) / 2)));
+  }
+  .agenda__track .ag {
+    grid-column: var(--ag-at);
+    margin: 0 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .agenda__empty {
+    grid-column: 1 / -1;
+    align-self: center;
+    padding-left: 8px;
+  }
+}

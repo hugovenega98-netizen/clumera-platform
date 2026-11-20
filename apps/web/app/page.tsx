@@ -21,7 +21,7 @@ const dayKey = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
 const weekday = new Intl.DateTimeFormat('es-AR', { weekday: 'short', timeZone: TZ });
 const hour = new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: TZ });
 const ddmm = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
-const SOURCE: Record<string, string> = { finance: 'Pagos', sports: 'Deportes', identity: 'Mi club', notifications: 'Avisos' };
+const SOURCE: Record<string, string> = { finance: 'Pagos', sports: 'Deportes', identity: 'Mi club', notifications: 'Avisos', bookings: 'Reservas' };
 
 function whenLabel(d: Date, now: Date) {
   if (dayKey.format(d) === dayKey.format(now)) return 'Hoy';

@@ -2,6 +2,9 @@ import { baseRoles, roleNames } from '@clumera/catalog';
 import type { PrismaClient } from '@clumera/db';
 import { issueCharge, issueMonthlyDues, periodLabel, periodOf, recordPayment } from '@clumera/finance';
 import { createAuthService, DEFAULT_AUTH_SETTINGS, syncBaseRoles } from '@clumera/identity';
+import { clubDayOf, clubTime, placeSlot } from '@clumera/agenda';
+import { cancelBooking, confirmPaidBookings, createBooking } from '@clumera/module-bookings';
+import { addTariff, createBlock, createVenue, setBookingRule, setVenueStatus } from '@clumera/module-facilities';
 import { createMatch, createSport, createTeam, recordEvaluation, reportInjury, setLineup, setTeamMember, teamFeeRows } from '@clumera/sports';
 import type { Mailer } from '@clumera/mail';
 import { LAB_PROFILES } from './profiles';
@@ -145,6 +148,7 @@ export async function seedLab(db: PrismaClient, options: SeedOptions): Promise<{
   // Deportes y Finanzas al final: cuotas y aranceles alcanzan a todo lo sembrado.
   await seedSports(db, padron);
   await seedFinance(db, padron);
+  await seedFacilities(db, padron);
 
   return { people: await db.person.count() };
 }
@@ -291,6 +295,66 @@ async function seedSports(db: PrismaClient, padron: Record<string, string>): Pro
 }
 
 /** Vacía la base de Lab (todas las tablas salvo el historial de migraciones). Solo tras assertLabTarget. */
+/**
+ * Instalaciones y reservas de demo: un club integral (fútbol 5, pádel, pileta, quincho, salón y
+ * gimnasio), reglas y tarifas, ocupaciones de otros módulos en la agenda central y reservas en
+ * todos los estados. Personas del padrón que no usan otras demos (Ana y Martina quedan libres).
+ */
+async function seedFacilities(db: PrismaClient, padron: Record<string, string>): Promise<void> {
+  const ok = <T>(r: { ok: true; value: T } | { ok: false; error: Error }): T => {
+    if (!r.ok) throw r.error;
+    return r.value;
+  };
+  const admin = (await db.person.findFirst({ where: { firstName: 'Sofía', lastName: 'Ruiz' }, select: { id: true } }))!.id;
+  const venue = async (slug: string, name: string, group: string, detail: string, sortOrder: number) => ok(await createVenue(db, admin, { slug, name, group, detail, sortOrder })).id;
+  const f51 = await venue('f5-1', 'F5-1', 'Fútbol 5', 'Sintético', 1);
+  const f52 = await venue('f5-2', 'F5-2', 'Fútbol 5', 'Sintético', 2);
+  const p1 = await venue('padel-1', 'Pádel 1', 'Pádel', 'Techada', 3);
+  const p2 = await venue('padel-2', 'Pádel 2', 'Pádel', 'Al aire libre', 4);
+  const pileta = await venue('pileta', 'Pileta', 'Pileta', 'Temporada 26/27', 5);
+  const quincho = await venue('quincho', 'Quincho', 'Quincho', '40 personas', 6);
+  const salon = await venue('salon', 'Salón principal', 'Salón', '150 personas', 7);
+  const gym = await venue('gimnasio', 'Gimnasio', 'Gimnasio', 'Aparatos y clases', 8);
+  ok(await setVenueStatus(db, admin, gym, 'out_of_service', 'Reparación del piso'));
+
+  const padelRule = { slotMinutes: 60, openFrom: 8 * 60, openTo: 23 * 60, maxAdvanceDays: 14, holdMinutes: 10, cancelHours: 24, depositPercent: 50, payAtClub: false };
+  for (const id of [p1, p2]) {
+    ok(await setBookingRule(db, admin, id, padelRule));
+    ok(await addTariff(db, admin, id, { label: 'Mañana y tarde', days: 0b0011111, fromMinute: 8 * 60, toMinute: 18 * 60, memberPrice: 6_000_00, guestPrice: 9_000_00 }));
+    ok(await addTariff(db, admin, id, { label: 'Fin de semana', days: 0b1100000, fromMinute: 8 * 60, toMinute: 18 * 60, memberPrice: 9_000_00, guestPrice: 12_000_00 }));
+    ok(await addTariff(db, admin, id, { label: 'Noche', days: 127, fromMinute: 18 * 60, toMinute: 23 * 60, memberPrice: 9_000_00, guestPrice: 12_000_00 }));
+  }
+  for (const id of [f51, f52]) {
+    ok(await setBookingRule(db, admin, id, { ...padelRule, openFrom: 9 * 60, payAtClub: true }));
+    ok(await addTariff(db, admin, id, { label: 'Todo el día', days: 127, fromMinute: 9 * 60, toMinute: 23 * 60, memberPrice: 18_000_00, guestPrice: 24_000_00 }));
+  }
+  ok(await setBookingRule(db, admin, quincho, { slotMinutes: 240, openFrom: 12 * 60, openTo: 24 * 60, maxAdvanceDays: 60, holdMinutes: 15, cancelHours: 72, depositPercent: 30, payAtClub: true }));
+  ok(await addTariff(db, admin, quincho, { label: 'Evento', days: 127, fromMinute: 12 * 60, toMinute: 24 * 60, memberPrice: 35_000_00, guestPrice: 50_000_00 }));
+
+  // Otras ocupaciones de la agenda central (Escuelas, Torneos y Eventos llegan en sus hitos).
+  const today = clubDayOf(new Date()).day;
+  const day = (n: number) => new Date(Date.parse(`${today}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
+  const saturday = day((5 - clubDayOf(new Date()).weekday + 7) % 7 || 7); // próximo sábado
+  const occupy = async (venueId: string, d: string, from: number, to: number, kind: 'school' | 'tournament' | 'event', label: string) =>
+    ok(await placeSlot(db, { venueId, startsAt: clubTime(d, from * 60), endsAt: clubTime(d, to * 60), kind, label, source: 'lab', sourceRef: `${kind}:${venueId}:${d}:${from}`, createdById: admin }));
+  for (const d of [day(1), day(2)]) await occupy(p2, d, 9, 11, 'school', 'Escuela de pádel');
+  for (const id of [f51, f52]) await occupy(id, saturday, 14, 18, 'tournament', 'Relámpago · fecha 3');
+  await occupy(salon, saturday, 18, 24, 'event', 'Peña del rugby');
+  await occupy(pileta, day(1), 10, 19, 'school', 'Colonia + uso libre');
+  ok(await createBlock(db, admin, { venueId: f51, day: day(1), fromMinute: 9 * 60, toMinute: 12 * 60, reason: 'Mantenimiento del césped' }));
+
+  // Reservas en todos los estados.
+  const book = async (who: string, venueId: string, d: string, hour: number, payMode: 'full' | 'deposit' | 'club') =>
+    ok(await createBooking(db, padron[who]!, { personId: padron[who]!, venueId, startsAt: clubTime(d, hour * 60), payMode }));
+  const paid = await book('Lucas Benítez', p2, saturday, 19, 'deposit');
+  ok(await recordPayment(db, admin, { payerPersonId: padron['Lucas Benítez']!, chargeIds: [paid.chargeId!], method: 'transfer' }));
+  await db.$transaction((tx) => confirmPaidBookings(tx, [paid.chargeId!]));
+  await book('Valentina Rossi', f52, day(1), 20, 'club'); // confirmada, se paga en el club
+  await book('Bruno Ferrari', p1, day(1), 19, 'full'); // retenida, esperando el pago
+  const cancelled = await book('Camila Torres', quincho, day(10), 20, 'club');
+  ok(await cancelBooking(db, padron['Camila Torres']!, cancelled.id, { byManager: false }));
+}
+
 export async function wipeLab(db: PrismaClient): Promise<void> {
   const tables = await db.$queryRaw<Array<{ name: string }>>`
     SELECT tablename AS name FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations'`;

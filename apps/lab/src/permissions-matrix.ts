@@ -21,6 +21,7 @@ export interface PermissionCase {
 }
 
 const rugby = { type: 'sport', id: 'rugby' } as const;
+const padel2 = { type: 'venue', id: 'padel-2' } as const;
 
 export const PERMISSION_CASES: PermissionCase[] = [
   { id: 'person-manage', label: 'Dar altas, crear cuentas y revocar carnets', action: 'identity:person.manage', allowed: ['superadmin'] },
@@ -45,7 +46,11 @@ export const PERMISSION_CASES: PermissionCase[] = [
   { id: 'match-control-hockey', label: 'Operar la mesa de control de hockey', action: 'sports:match.control', resource: { scopes: [{ type: 'sport', id: 'hockey' }, { type: 'team', id: 'hockey-damas' }] }, allowed: ['superadmin'] },
   { id: 'sports-manage', label: 'Administrar deportes, equipos y planteles', action: 'sports:manage', allowed: ['superadmin'] },
   { id: 'access', label: 'Validar accesos en la entrada', action: 'access:validate', allowed: ['superadmin', 'recepcion'] },
-  { id: 'venues', label: 'Administrar instalaciones', action: 'facilities:venue.manage', allowed: ['superadmin', 'instalaciones'] },
+  { id: 'venues', label: 'Administrar instalaciones (espacios, reglas y tarifas)', action: 'facilities:venue.manage', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },
+  { id: 'agenda', label: 'Ver la agenda central', action: 'facilities:venue.view', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },
+  { id: 'blocks', label: 'Bloquear un espacio (mantenimiento)', action: 'facilities:block.manage', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },
+  { id: 'book', label: 'Reservar un turno', action: 'bookings:book', allowed: ['superadmin', 'socio', 'coach'] },
+  { id: 'bookings-manage', label: 'Ver y cancelar las reservas del día de otras personas', action: 'bookings:manage', resource: { scopes: [padel2] }, allowed: ['superadmin', 'instalaciones'] },
   { id: 'attendance', label: 'Tomar asistencia en natación', action: 'schools:attendance.mark', resource: { scopes: [{ type: 'activity', id: 'natacion' }] }, allowed: ['superadmin', 'profesor'] },
   { id: 'schools-manage', label: 'Administrar escuelas', action: 'schools:manage', allowed: ['superadmin', 'coordinador'] },
   { id: 'tournaments', label: 'Organizar torneos', action: 'tournaments:manage', allowed: ['superadmin', 'organizador'] },
